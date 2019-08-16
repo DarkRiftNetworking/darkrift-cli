@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RootNamespace>darkrift_cli</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.6.0" />
+    <PackageReference Include="Crayon" Version="0.0.34" />
+  </ItemGroup>
+
+  <Target Name="BuildTemplateArchive" AfterTargets="Build">
+    <Delete Files="$(OutputPath)/template-project.zip" />
+    <Message Text="$(OutputPath)" Importance="high" />
+    <ZipDirectory
+            SourceDirectory="$(MSBuildProjectDirectory)/template-project"
+            DestinationFile="$(OutputPath)/template-project.zip" />
+  </Target>
+</Project>
