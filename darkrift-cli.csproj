@@ -26,9 +26,16 @@
 
   <Target Name="BuildTemplateArchives" AfterTargets="Build">
     <MakeDir Directories="$(OutputPath)/templates/" />
-    <Delete Files="$(OutputPath)/templates/project.zip;$(OutputPath)/templates/plugin.zip" />
+    
+    <ItemGroup>
+        <FilesToDelete Include="$(OutputPath)/templates/*.zip"/>
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+
     <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/project" DestinationFile="$(OutputPath)/templates/project.zip" />
     <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/plugin" DestinationFile="$(OutputPath)/templates/plugin.zip" />
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/log-writer" DestinationFile="$(OutputPath)/templates/log-writer.zip" />
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/network-listener" DestinationFile="$(OutputPath)/templates/network-listener.zip" />
   </Target>
 
   <Target Name="CleanTemplateArchives" AfterTargets="Clean">
