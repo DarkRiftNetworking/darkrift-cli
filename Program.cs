@@ -81,15 +81,31 @@ namespace darkrift_cli
 
             Console.WriteLine($"Cleaning up extracted artifacts...");
 
-            foreach (string extractedFile in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
+            foreach (string originalPath in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
             {
+                string resolvedPath = originalPath;
+
                 // Keep files containing __k__
-                if (extractedFile.Contains("__k__"))
-                    File.Move(extractedFile, extractedFile.Replace("__k__", ""));
+                if (resolvedPath.Contains("__k__"))
+                    resolvedPath = resolvedPath.Replace("__k__", "");
+
+                // Template the path of files containing __n__
+                if (resolvedPath.Contains("__n__"))
+                    resolvedPath = resolvedPath.Replace("__n__", Path.GetFileName(targetDirectory));
                 
+                // Template the content of files containing __c__
+                if (resolvedPath.Contains("__c__"))
+                {
+                    resolvedPath = resolvedPath.Replace("__c__", "");
+                    File.WriteAllText(originalPath, File.ReadAllText(originalPath).Replace("$__n__", Path.GetFileName(targetDirectory)));
+                }
+
+                if (resolvedPath != originalPath)
+                    File.Move(originalPath, resolvedPath);
+
                 // Delete files containing __d__
-                if (extractedFile.Contains("__d__"))
-                    File.Delete(extractedFile);
+                if (resolvedPath.Contains("__d__"))
+                    File.Delete(resolvedPath);
             }
 
             Console.WriteLine(Output.Green($"Created '{Path.GetFileName(targetDirectory)}'"));

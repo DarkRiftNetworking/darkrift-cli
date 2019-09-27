@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>$__n__</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="DarkRift" />
+    <Reference Include="DarkRift.Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" Version="4.10.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" targetFramework="net45" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" targetFramework="net45" />
+  </ItemGroup>
+
+  <Target Name="MoveToPluginsFolder" AfterTargets="Build">
+    <Move SourceFiles="$(OutputPath)/**/*.*" DestinationFolder="$(MSBuildProjectDirectory)/plugins/" />
+  </Target>
+</Project>
