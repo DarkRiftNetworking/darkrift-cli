@@ -125,8 +125,11 @@ namespace darkrift_cli
             string configFile;
             if (arguments.Length == 0)
             {
-                // TODO Some people might prefer to use .config still, allow?
-                configFile = "Server.xml";
+                // Some people might prefer to use .config still
+                if (File.Exists("Server.config"))
+                    configFile = "Server.config";
+                else
+                    configFile = "Server.xml";
             }
             else if (arguments.Length == 1)
             {
