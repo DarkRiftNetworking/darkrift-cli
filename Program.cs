@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
+using System.Threading;
 using CommandLine;
 using Crayon;
+using DarkRift.Server;
 
 namespace darkrift_cli
 {
@@ -52,8 +57,6 @@ namespace darkrift_cli
                     (ExecOptions opts) => Exec(opts),
                     (GetOptions opts) => Get(opts),
                     _ => 1);
-
-            
         }
 
         private static int New(NewOptions opts)
@@ -80,7 +83,82 @@ namespace darkrift_cli
 
         private static int Run(RunOptions opts)
         {
-            throw new NotImplementedException();
+            DarkRiftServer server;
+
+            //TODO find a way to integrate with commandline rather than reparsing arguments with DR
+            string[] rawArguments = CommandEngine.ParseArguments(string.Join(" ", Environment.GetCommandLineArgs().Skip(2).ToArray()));
+            string[] arguments = CommandEngine.GetArguments(rawArguments);
+            NameValueCollection variables = CommandEngine.GetFlags(rawArguments);
+
+            string configFile;
+            if (arguments.Length == 0)
+            {
+                // TODO Some people might prefer to use .config still, allow?
+                configFile = "Server.xml";
+            }
+            else if (arguments.Length == 1)
+            {
+                configFile = arguments[0];
+            }
+            else
+            {
+                System.Console.Error.WriteLine("Invalid comand line arguments.");
+                System.Console.WriteLine("Press any key to exit...");
+                System.Console.ReadKey();
+                return 1;
+            }
+
+            ServerSpawnData spawnData;
+
+            try
+            {
+                spawnData = ServerSpawnData.CreateFromXml(configFile, variables);
+            }
+            catch (IOException e)
+            {
+                System.Console.Error.WriteLine("Could not load the config file needed to start (" + e.Message + "). Are you sure it's present and accessible?");
+                System.Console.WriteLine("Press any key to exit...");
+                System.Console.ReadKey();
+                return 1;
+            }
+            catch (XmlConfigurationException e)
+            {
+                System.Console.Error.WriteLine(e.Message);
+                System.Console.WriteLine("Press any key to exit...");
+                System.Console.ReadKey();
+                return 1;
+            }
+            catch (KeyNotFoundException e)
+            {
+                System.Console.Error.WriteLine(e.Message);
+                System.Console.WriteLine("Press any key to exit...");
+                System.Console.ReadKey();
+                return 1;
+            }
+
+            // Set this thread as the one executing dispatcher tasks
+            spawnData.DispatcherExecutorThreadID = Thread.CurrentThread.ManagedThreadId;
+
+            server = new DarkRiftServer(spawnData);
+
+            server.Start();
+
+            new Thread(new ThreadStart(() => {
+                while (!server.Disposed)
+                {
+                    string input = System.Console.ReadLine();
+
+                    server.ExecuteCommand(input);
+                }
+            })).Start();
+
+            while (!server.Disposed)
+            {
+                server.DispatcherWaitHandle.WaitOne();
+                server.ExecuteDispatcherTasks();
+            }
+
+            return 0;
         }
 
         private static int Exec(ExecOptions opts)
