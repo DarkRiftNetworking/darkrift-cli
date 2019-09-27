@@ -75,11 +75,24 @@ namespace darkrift_cli
                 return 1;
             }
 
-            Console.WriteLine($"Creating new project '{Path.GetFileName(targetDirectory)}'...");
+            Console.WriteLine($"Creating new {opts.Type} from template '{Path.GetFileName(targetDirectory)}'...");
 
             ZipFile.ExtractToDirectory(templatePath, targetDirectory, true);
 
-            Console.WriteLine(Output.Green($"Created new project '{Path.GetFileName(targetDirectory)}'"));
+            Console.WriteLine($"Cleaning up extracted artifacts...");
+
+            foreach (string extractedFile in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
+            {
+                // Keep files containing __k__
+                if (extractedFile.Contains("__k__"))
+                    File.Move(extractedFile, extractedFile.Replace("__k__", ""));
+                
+                // Delete files containing __d__
+                if (extractedFile.Contains("__d__"))
+                    File.Delete(extractedFile);
+            }
+
+            Console.WriteLine(Output.Green($"Created '{Path.GetFileName(targetDirectory)}'"));
 
             return 0;
         }

@@ -1,0 +1,5 @@
+.darkrift/
+plugins/
+log-writers/
+network-listeners/
+logs/
