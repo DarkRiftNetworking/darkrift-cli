@@ -9,13 +9,15 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
     <PackageReference Include="Crayon" Version="0.0.34" />
+    <PackageReference Include="NuGet.Packaging" Version="5.2.0" />
+    <PackageReference Include="NuGet.Packaging.Core.Types" Version="4.2.0" />
+    <PackageReference Include="NuGet.ProjectManagement" Version="4.2.0" />
+    <PackageReference Include="NuGet.Protocol.Core.v3" Version="4.2.0" />
   </ItemGroup>
 
   <Target Name="BuildTemplateArchive" AfterTargets="Build">
     <Delete Files="$(OutputPath)/template-project.zip" />
     <Message Text="$(OutputPath)" Importance="high" />
-    <ZipDirectory
-            SourceDirectory="$(MSBuildProjectDirectory)/template-project"
-            DestinationFile="$(OutputPath)/template-project.zip" />
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/template-project" DestinationFile="$(OutputPath)/template-project.zip" />
   </Target>
 </Project>

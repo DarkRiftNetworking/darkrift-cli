@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using CommandLine;
 using Crayon;
 
@@ -35,20 +36,24 @@ namespace darkrift_cli
 
         }
 
-        [Verb("add", HelpText = "Runs a command on a remote DarkRift server.")]
-        class ExecOptions
+        [Verb("get", HelpText = "Downloads a plugin package into this server.")]
+        class GetOptions
         {
-
+            [Value(1)]
+            public string Url { get; set; }
         }
 
         public static int Main(string[] args)
         {
-            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, ExecOptions>(args)
+            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, ExecOptions, GetOptions>(args)
                 .MapResult(
                     (NewOptions opts) => New(opts),
                     (RunOptions opts) => Run(opts),
                     (ExecOptions opts) => Exec(opts),
+                    (GetOptions opts) => Get(opts),
                     _ => 1);
+
+            
         }
 
         private static int New(NewOptions opts)
@@ -64,7 +69,7 @@ namespace darkrift_cli
                 return 1;
             }
 
-            Console.WriteLine($"Creating new project '${Path.GetFileName(targetDirectory)}'");
+            Console.WriteLine($"Creating new project '${Path.GetFileName(targetDirectory)}'...");
 
             ZipFile.ExtractToDirectory(PROJECT_TEMPLATE_PATH, targetDirectory, true);
 
@@ -81,6 +86,38 @@ namespace darkrift_cli
         private static int Exec(ExecOptions opts)
         {
             throw new NotImplementedException();
+        }
+
+        private static int Get(GetOptions opts)
+        {
+            if (!Uri.TryCreate(opts.Url, UriKind.RelativeOrAbsolute, out Uri uri))
+            {
+                Console.Error.WriteLine(Output.Red("Invalid URL passed."));
+                return 1;
+            }
+
+            string stagingDirectory = Path.Combine(".", ".darkrift", "temp");
+            string stagingPath = Path.Combine(stagingDirectory, "Download.zip");
+            Directory.CreateDirectory(stagingDirectory);
+
+            Console.WriteLine($"Downloading package...");
+
+            using (WebClient myWebClient = new WebClient())
+            {
+                myWebClient.DownloadFile(uri, stagingPath);
+            }
+
+            Console.WriteLine($"Extracting package...");
+
+            // TODO find a better place for this
+            string targetDirectory = Path.Combine(".", "plugins");
+            Directory.CreateDirectory(targetDirectory);
+
+            ZipFile.ExtractToDirectory(stagingPath, targetDirectory, true);
+
+            Console.WriteLine(Output.Green($"Downloaded package into plugins directory."));
+
+            return 0;
         }
     }
 }
