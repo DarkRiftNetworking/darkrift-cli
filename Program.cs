@@ -183,6 +183,7 @@ namespace darkrift_cli
             if (!Uri.TryCreate(opts.Url, UriKind.RelativeOrAbsolute, out Uri uri))
             {
                 Console.Error.WriteLine(Output.Red("Invalid URL passed."));
+                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + CommandLine.Parser.Default.FormatCommandLine(new GetOptions { Url = "https://your-download-url/file.zip" }));
                 return 1;
             }
 
