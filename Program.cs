@@ -15,9 +15,9 @@ namespace darkrift_cli
     class Program
     {
         /// <summary>
-        /// The location of the project template archive.
+        /// The location of the template archives.
         /// <summary>
-        private static readonly string PROJECT_TEMPLATE_PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "template-project.zip");
+        private static readonly string TEMPLATES_PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates");
 
         [Verb("new", HelpText = "Create a new DarkRift project.")]
         class NewOptions
@@ -25,18 +25,15 @@ namespace darkrift_cli
             [Option('f', Default = false, HelpText = "Force creation overwriting any files that already exist in the directory.")]
             public bool Force { get; set; }
 
-            [Value(0, HelpText = "The directory to create the project in.")]
+            [Value(0, HelpText = "The name of the template to unpack, currently only 'project'.", Required = true)]
+            public string Type { get; set; }
+
+            [Value(1, HelpText = "The directory to unpack the template in.")]
             public string TargetDirectory { get; set; }
         }
 
         [Verb("run", HelpText = "Run a DarkRift project.")]
         class RunOptions
-        {
-
-        }
-
-        [Verb("exec", HelpText = "Runs a command on a remote DarkRift server.")]
-        class ExecOptions
         {
 
         }
@@ -50,11 +47,10 @@ namespace darkrift_cli
 
         public static int Main(string[] args)
         {
-            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, ExecOptions, GetOptions>(args)
+            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, GetOptions>(args)
                 .MapResult(
                     (NewOptions opts) => New(opts),
                     (RunOptions opts) => Run(opts),
-                    (ExecOptions opts) => Exec(opts),
                     (GetOptions opts) => Get(opts),
                     _ => 1);
         }
@@ -62,19 +58,26 @@ namespace darkrift_cli
         private static int New(NewOptions opts)
         {
             string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
+            string templatePath = Path.Combine(TEMPLATES_PATH, opts.Type + ".zip");
 
             Directory.CreateDirectory(targetDirectory);
 
             if (Directory.GetFiles(targetDirectory).Length > 0 && !opts.Force)
             {
-                Console.Error.WriteLine(Output.Red("Cannot create new project, the directory is not empty. Use -f to force creation."));
-                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + CommandLine.Parser.Default.FormatCommandLine(new NewOptions { TargetDirectory = opts.TargetDirectory, Force = true }));
+                Console.Error.WriteLine(Output.Red("Cannot create from template, the directory is not empty. Use -f to force creation."));
+                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + CommandLine.Parser.Default.FormatCommandLine(new NewOptions { Type = opts.Type, TargetDirectory = opts.TargetDirectory, Force = true }));
                 return 1;
             }
 
-            Console.WriteLine($"Creating new project '${Path.GetFileName(targetDirectory)}'...");
+            if (!File.Exists(templatePath))
+            {
+                Console.Error.WriteLine(Output.Red("Cannot create from template, no template with that name exists."));
+                return 1;
+            }
 
-            ZipFile.ExtractToDirectory(PROJECT_TEMPLATE_PATH, targetDirectory, true);
+            Console.WriteLine($"Creating new project '{Path.GetFileName(targetDirectory)}'...");
+
+            ZipFile.ExtractToDirectory(templatePath, targetDirectory, true);
 
             Console.WriteLine(Output.Green($"Created new project '{Path.GetFileName(targetDirectory)}'"));
 
@@ -143,7 +146,8 @@ namespace darkrift_cli
 
             server.Start();
 
-            new Thread(new ThreadStart(() => {
+            new Thread(new ThreadStart(() =>
+            {
                 while (!server.Disposed)
                 {
                     string input = System.Console.ReadLine();
@@ -159,11 +163,6 @@ namespace darkrift_cli
             }
 
             return 0;
-        }
-
-        private static int Exec(ExecOptions opts)
-        {
-            throw new NotImplementedException();
         }
 
         private static int Get(GetOptions opts)

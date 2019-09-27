@@ -29,7 +29,7 @@
       -->
     <logWriters>
       <logWriter name="FileWriter1" type="FileWriter" levels="trace, info, warning, error, fatal">
-        <settings file="Logs/{0:d-M-yyyy}/{0:HH-mm-ss tt}.txt" />
+        <settings file="Logs/{0:yyyy-M-d}/{0:HH-mm-ss}.txt" />
       </logWriter>
 
       <logWriter name="ConsoleWriter1" type="ConsoleWriter" levels="info, warning, error, fatal" />
@@ -58,7 +58,7 @@
   <databases>
 
   </databases>
-  
+
   <!--
     Defines the listeners that will be loaded by the server.
   -->

@@ -24,8 +24,13 @@
     </Reference>
   </ItemGroup>
 
-  <Target Name="BuildTemplateArchive" AfterTargets="Build">
-    <Delete Files="$(OutputPath)/template-project.zip" />
-    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/template-project" DestinationFile="$(OutputPath)/template-project.zip" />
+  <Target Name="BuildTemplateArchives" AfterTargets="Build">
+    <MakeDir Directories="$(OutputPath)/templates/" />
+    <Delete Files="$(OutputPath)/templates/project.zip" />
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/project" DestinationFile="$(OutputPath)/templates/project.zip" />
+  </Target>
+
+  <Target Name="CleanTemplateArchives" AfterTargets="Clean">
+    <RemoveDir Directories="$(OutputPath)/templates/" />
   </Target>
 </Project>
