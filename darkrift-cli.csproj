@@ -4,15 +4,12 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <RootNamespace>darkrift_cli</RootNamespace>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
     <PackageReference Include="Crayon" Version="0.0.34" />
-    <PackageReference Include="NuGet.Packaging" Version="5.2.0" />
-    <PackageReference Include="NuGet.Packaging.Core.Types" Version="4.2.0" />
-    <PackageReference Include="NuGet.ProjectManagement" Version="4.2.0" />
-    <PackageReference Include="NuGet.Protocol.Core.v3" Version="4.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +20,10 @@
       <HintPath>..\darkrift-2\Build\Debug\net4.0\Lib\DarkRift.Server.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);templates\**\*.*</DefaultItemExcludes>
+  </PropertyGroup>
 
   <Target Name="BuildTemplateArchives" AfterTargets="Build">
     <MakeDir Directories="$(OutputPath)/templates/" />
@@ -40,5 +41,19 @@
 
   <Target Name="CleanTemplateArchives" AfterTargets="Clean">
     <RemoveDir Directories="$(OutputPath)/templates/" />
+  </Target>
+
+  <Target Name="CopyRunScript" AfterTargets="Build">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/darkrift" DestinationFolder="$(OutputPath)" />
+  </Target>
+
+  <Target Name="CopyAdditionalAssetsOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="$(OutputPath)/darkrift" DestinationFolder="$(PublishDir)" />
+  
+    <MakeDir Directories="$(OutputPath)/templates/" />
+    <ItemGroup>
+      <Templates Include="$(OutputPath)/templates/*.zip" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Templates)" DestinationFolder="$(PublishDir)/templates" />
   </Target>
 </Project>

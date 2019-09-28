@@ -11,9 +11,16 @@ In future, this tool will likely handle:
 - Managing remote servers (e.g. executing commands over SSH/HTTP, retrieving logs)
 
 # Installation
-To install the DarkRift CLI tool...
+## From Releases (recommended)
+If you've downloaded a release version you simply need to extract the archive into a folder and add the folder to your path variable.
 
-TODO content
+You can test your installation with
+```bash
+darkrift version
+```
+
+## From Source
+To build from source, clone the repository and run `dotnet publish`. You will then have the same binaries as in the release in the `bin/` folder and can follow the steps above to install.
 
 # Usage
 ## New
