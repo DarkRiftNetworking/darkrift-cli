@@ -24,10 +24,12 @@ To build from source, clone the repository and run `dotnet publish`. You will th
 
 # Usage
 ## New
-To create a new project or plugin:
+To create a new project etc. from template use:
 ```bash
 darkrift new project my-project
 darkrift new plugin my-plugin
+darkrift new log-writer my-plugin
+darkrift new network-listener my-plugin
 ```
 
 ## Get

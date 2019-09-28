@@ -25,7 +25,7 @@ namespace darkrift_cli
             [Option('f', Default = false, HelpText = "Force creation overwriting any files that already exist in the directory.")]
             public bool Force { get; set; }
 
-            [Value(0, HelpText = "The name of the template to unpack, currently only 'project'.", Required = true)]
+            [Value(0, HelpText = "The name of the template to unpack.", Required = true)]
             public string Type { get; set; }
 
             [Value(1, HelpText = "The directory to unpack the template in.")]
