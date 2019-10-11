@@ -1,8 +1,9 @@
 # DarkRift CLI Tool
 This tool is designed to make DarkRift projects more structured and uniform across all users as well as providing a single interface to simplify common tasks.
 
-To start with, the tool handles three tasks:
-- Creating projects and plugins from scratch;
+To start with, the tool handles four common tasks:
+- Creating projects, plugins and other resources from scratch;
+- downloading and managing different versions of DarkRift;
 - downloading and installing plugins from online locations; and,
 - running a server from centralized binaries.
 
