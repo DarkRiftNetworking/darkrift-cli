@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System.Text.RegularExpressions;
+using System.Reflection.Metadata;
+using System.Reflection;
+using System.Linq;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
-using System.Threading;
 using CommandLine;
 using Crayon;
-using DarkRift.Server;
 
-namespace darkrift_cli
+namespace DarkRift.Cli
 {
     class Program
     {
@@ -41,17 +41,31 @@ namespace darkrift_cli
         [Verb("get", HelpText = "Downloads a plugin package into this server.")]
         class GetOptions
         {
-            [Value(1)]
+            [Value(0, Required = true)]
             public string Url { get; set; }
+        }
+
+        [Verb("pull", HelpText = "Pulls the specified version of DarkRift locally.")]
+        class PullOptions
+        {
+            [Value(0, Required = true)]
+            public String Version { get; set; }
+
+            [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
+            public bool Pro { get; set; }
+
+            [Option('s', "standard", Default = false, HelpText = "Use the .NET standard version.")]
+            public bool Standard { get; set; }
         }
 
         public static int Main(string[] args)
         {
-            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, GetOptions>(args)
+            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions>(args)
                 .MapResult(
                     (NewOptions opts) => New(opts),
                     (RunOptions opts) => Run(opts),
                     (GetOptions opts) => Get(opts),
+                    (PullOptions opts) => Pull(opts),
                     _ => 1);
         }
 
@@ -75,7 +89,7 @@ namespace darkrift_cli
                 return 1;
             }
 
-            Console.WriteLine($"Creating new {opts.Type} from template '{Path.GetFileName(targetDirectory)}'...");
+            Console.WriteLine($"Creating new {opts.Type} '{Path.GetFileName(targetDirectory)}' from template...");
 
             ZipFile.ExtractToDirectory(templatePath, targetDirectory, true);
 
@@ -92,7 +106,7 @@ namespace darkrift_cli
                 // Template the path of files containing __n__
                 if (resolvedPath.Contains("__n__"))
                     resolvedPath = resolvedPath.Replace("__n__", Path.GetFileName(targetDirectory));
-                
+
                 // Template the content of files containing __c__
                 if (resolvedPath.Contains("__c__"))
                 {
@@ -115,86 +129,33 @@ namespace darkrift_cli
 
         private static int Run(RunOptions opts)
         {
-            DarkRiftServer server;
+            Project project = Project.Load();
 
-            //TODO find a way to integrate with commandline rather than reparsing arguments with DR
-            string[] rawArguments = CommandEngine.ParseArguments(string.Join(" ", Environment.GetCommandLineArgs().Skip(2).ToArray()));
-            string[] arguments = CommandEngine.GetArguments(rawArguments);
-            NameValueCollection variables = CommandEngine.GetFlags(rawArguments);
-
-            string configFile;
-            if (arguments.Length == 0)
+            if (project.Runtime == null)
             {
-                // Some people might prefer to use .config still
-                if (File.Exists("Server.config"))
-                    configFile = "Server.config";
-                else
-                    configFile = "Server.xml";
-            }
-            else if (arguments.Length == 1)
-            {
-                configFile = arguments[0];
-            }
-            else
-            {
-                System.Console.Error.WriteLine("Invalid comand line arguments.");
-                System.Console.WriteLine("Press any key to exit...");
-                System.Console.ReadKey();
-                return 1;
+                project.Runtime = new Runtime("2.4.5", false, false);       // TODO auto populate 2.4.5 with latest version from website
+                project.Save();
             }
 
-            ServerSpawnData spawnData;
+            string path = VersionManager.GetInstallationPath(Version.Parse(project.Runtime.Version), project.Runtime.Pro, project.Runtime.Standard);
 
-            try
+            string fullPath = Path.Combine(path, "DarkRift.Server.Console.exe"); //TODO handle standard having a different filename/executable
+
+            Match match = Regex.Match(Environment.CommandLine, @"(?<=(darkrift-cli\.dll|darkrift(\.exe|\.sh)?) run)");
+            if (match == null)
+                throw new ArgumentException("Failed to start server. Cannot find start of server arguments.");
+
+            string args = Environment.CommandLine.Substring(match.Index);
+
+            using (Process process = new Process())
             {
-                spawnData = ServerSpawnData.CreateFromXml(configFile, variables);
+                process.StartInfo = new ProcessStartInfo(fullPath, args);
+                process.Start();
+
+                process.WaitForExit();
+
+                return process.ExitCode;
             }
-            catch (IOException e)
-            {
-                System.Console.Error.WriteLine("Could not load the config file needed to start (" + e.Message + "). Are you sure it's present and accessible?");
-                System.Console.WriteLine("Press any key to exit...");
-                System.Console.ReadKey();
-                return 1;
-            }
-            catch (XmlConfigurationException e)
-            {
-                System.Console.Error.WriteLine(e.Message);
-                System.Console.WriteLine("Press any key to exit...");
-                System.Console.ReadKey();
-                return 1;
-            }
-            catch (KeyNotFoundException e)
-            {
-                System.Console.Error.WriteLine(e.Message);
-                System.Console.WriteLine("Press any key to exit...");
-                System.Console.ReadKey();
-                return 1;
-            }
-
-            // Set this thread as the one executing dispatcher tasks
-            spawnData.DispatcherExecutorThreadID = Thread.CurrentThread.ManagedThreadId;
-
-            server = new DarkRiftServer(spawnData);
-
-            server.Start();
-
-            new Thread(new ThreadStart(() =>
-            {
-                while (!server.Disposed)
-                {
-                    string input = System.Console.ReadLine();
-
-                    server.ExecuteCommand(input);
-                }
-            })).Start();
-
-            while (!server.Disposed)
-            {
-                server.DispatcherWaitHandle.WaitOne();
-                server.ExecuteDispatcherTasks();
-            }
-
-            return 0;
         }
 
         private static int Get(GetOptions opts)
@@ -225,8 +186,19 @@ namespace darkrift_cli
 
             ZipFile.ExtractToDirectory(stagingPath, targetDirectory, true);
 
-            Console.WriteLine(Output.Green($"Downloaded package into plugins directory."));
+            Console.WriteLine(Output.Green($"Sucessfully downloaded package into plugins directory."));
 
+            return 0;
+        }
+
+        private static int Pull(PullOptions opts)
+        {
+            string path = VersionManager.GetInstallationPath(Version.Parse(opts.Version), opts.Pro, opts.Standard);
+
+            if (path == null)
+                return 1;
+
+            Console.WriteLine(path);
             return 0;
         }
     }

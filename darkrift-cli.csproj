@@ -12,15 +12,6 @@
     <PackageReference Include="Crayon" Version="0.0.34" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="DarkRift">
-      <HintPath>..\darkrift-2\Build\Debug\net4.0\Lib\DarkRift.dll</HintPath>
-    </Reference>
-    <Reference Include="DarkRift.Server">
-      <HintPath>..\darkrift-2\Build\Debug\net4.0\Lib\DarkRift.Server.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
   <PropertyGroup>
     <DefaultItemExcludes>$(DefaultItemExcludes);templates\**\*.*</DefaultItemExcludes>
   </PropertyGroup>

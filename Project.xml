@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.datacontract.org/2004/07/DarkRift.Cli">
+  <Runtime>
+    <Pro>false</Pro>
+    <Standard>false</Standard>
+    <Version>2.4.5</Version>
+  </Runtime>
+</Project>
