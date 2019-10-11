@@ -47,6 +47,15 @@ To run your project use:
 darkrift run
 ```
 
+## Pull
+To pull a version of DarkRift from the remote server for use locally you can use:
+```bash
+darkrift pull 2.4.5
+```
+This version of DarkRift is than available for use in your projects when starting a server with `darkrift run`.
+
+In most cases you do not need to do this yourself as `darkrift run` will automatically download the correct version.
+
 # Development
 Pull requests are actively encouraged on all open source DarkRift projects! This section will provide some useful advice for extending or improving the DarkRift CLI tool.
 
