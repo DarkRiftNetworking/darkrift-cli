@@ -23,18 +23,18 @@ namespace DarkRift.Cli
         /// <param name="pro">Whether the pro version should be used.</param>
         /// <param name="netStandard">Whether the .NET Standard build should be used.</param>
         /// <returns>The path to the installation, or null, if it cannot be provided.</returns>
-        public static string GetInstallationPath(Version version, bool pro, bool netStandard)
+        public static string GetInstallationPath(Version version, ServerTier tier, ServerPlatform platform)
         {
-            string fullPath = Path.Combine(USER_DR_DIR, "installed", pro ? "pro" : "free", netStandard ? "standard" : "framework", version.ToString());
+            string fullPath = Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version.ToString());
 
             if (!Directory.Exists(fullPath))
             {
-                Console.WriteLine($"DarkRift {version} - {(pro ? "Pro" : "Free")} (.NET {(netStandard ? "Standard" : "Framework")}) not installed! Downloading package...");
+                Console.WriteLine($"DarkRift {version} - {tier} (.NET {platform}) not installed! Downloading package...");
 
                 string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
                 
-                string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{(pro ? "Pro" : "Free")}/{(netStandard ? "Standard" : "Framework")}/{version}.zip";
-                if (pro)
+                string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{tier}/{platform}/{version}.zip";
+                if (tier == ServerTier.Pro)
                 {
                     string invoiceNumber = GetInvoiceNumber();
                     if (invoiceNumber == null)
@@ -47,9 +47,17 @@ namespace DarkRift.Cli
                 }
 
                 // TODO upload these versions in non-unitypackage format
-                using (WebClient myWebClient = new WebClient())
+                try 
                 {
-                    myWebClient.DownloadFile(uri, stagingPath);
+                    using (WebClient myWebClient = new WebClient())
+                    {
+                        myWebClient.DownloadFile(uri, stagingPath);
+                    }
+                }
+                catch (WebException e)
+                {
+                    Console.WriteLine(Output.Red($"Could not download DarkRift {version} - {tier} (.NET {platform}):\n\t{e.Message}"));
+                    return null;
                 }
 
                 Console.WriteLine($"Extracting package...");

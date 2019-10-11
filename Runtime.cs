@@ -19,25 +19,25 @@ namespace DarkRift.Cli
         /// The tier of DarkRift to use.
         /// </summary>
         [DataMember()]
-        public bool Pro { get; set; }       //TODO make enum
+        public ServerTier Tier { get; set; }
         
         /// <summary>
         /// If .NET standard or .NET framework should be used.
         /// </summary>
         [DataMember()]
-        public bool Standard { get; set; }       //TODO make enum
+        public ServerPlatform Platform { get; set; }
 
         /// <summary>
         /// Creates a new Runtime configuration element.
         /// </summary>
         /// <param name="version">The version of DarkRift to use.</param>
-        /// <param name="pro">The tier of DarkRift to use.</param>
-        /// <param name="standard">If .NET standard or .NET framework should be used.</param>
-        public Runtime(string version, bool pro, bool standard)
+        /// <param name="tier">The tier of DarkRift to use.</param>
+        /// <param name="platform">If .NET standard or .NET framework should be used.</param>
+        public Runtime(string version, ServerTier tier, ServerPlatform platform)
         {
             Version = version;
-            Pro = pro;
-            Standard = standard;
+            Tier = tier;
+            Platform = platform;
         }
     }
 }

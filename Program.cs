@@ -30,6 +30,15 @@ namespace DarkRift.Cli
 
             [Value(1, HelpText = "The directory to unpack the template in.")]
             public string TargetDirectory { get; set; }
+
+            [Option("version", HelpText = "Specify the DarkRift version to use.")]
+            public string Version { get; set; }
+
+            [Option("pro", Default = false, HelpText = "Use the pro version.")]
+            public bool Tier { get; set; }
+            
+            [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Specify the .NET platform of the server to use.")]
+            public ServerPlatform Platform { get; set; }
         }
 
         [Verb("run", HelpText = "Run a DarkRift project.")]
@@ -52,10 +61,10 @@ namespace DarkRift.Cli
             public String Version { get; set; }
 
             [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
-            public bool Pro { get; set; }
+            public bool Tier { get; set; }
 
-            [Option('s', "standard", Default = false, HelpText = "Use the .NET standard version.")]
-            public bool Standard { get; set; }
+            [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Use the .NET platform of the server to use.")]
+            public ServerPlatform Platform { get; set; }
         }
 
         public static int Main(string[] args)
@@ -95,32 +104,8 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Cleaning up extracted artifacts...");
 
-            foreach (string originalPath in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
-            {
-                string resolvedPath = originalPath;
-
-                // Keep files containing __k__
-                if (resolvedPath.Contains("__k__"))
-                    resolvedPath = resolvedPath.Replace("__k__", "");
-
-                // Template the path of files containing __n__
-                if (resolvedPath.Contains("__n__"))
-                    resolvedPath = resolvedPath.Replace("__n__", Path.GetFileName(targetDirectory));
-
-                // Template the content of files containing __c__
-                if (resolvedPath.Contains("__c__"))
-                {
-                    resolvedPath = resolvedPath.Replace("__c__", "");
-                    File.WriteAllText(originalPath, File.ReadAllText(originalPath).Replace("$__n__", Path.GetFileName(targetDirectory)));
-                }
-
-                if (resolvedPath != originalPath)
-                    File.Move(originalPath, resolvedPath);
-
-                // Delete files containing __d__
-                if (resolvedPath.Contains("__d__"))
-                    File.Delete(resolvedPath);
-            }
+            foreach (string path in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
+                FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), opts.Version ?? GetLatestDarkRiftVersion(), opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             Console.WriteLine(Output.Green($"Created '{Path.GetFileName(targetDirectory)}'"));
 
@@ -133,11 +118,13 @@ namespace DarkRift.Cli
 
             if (project.Runtime == null)
             {
-                project.Runtime = new Runtime("2.4.5", false, false);       // TODO auto populate 2.4.5 with latest version from website
+                project.Runtime = new Runtime(GetLatestDarkRiftVersion(), ServerTier.Free, ServerPlatform.Framework);
                 project.Save();
             }
 
-            string path = VersionManager.GetInstallationPath(Version.Parse(project.Runtime.Version), project.Runtime.Pro, project.Runtime.Standard);
+            string path = VersionManager.GetInstallationPath(Version.Parse(project.Runtime.Version), project.Runtime.Tier, project.Runtime.Platform);
+            if (path == null)
+                return 1;
 
             string fullPath = Path.Combine(path, "DarkRift.Server.Console.exe"); //TODO handle standard having a different filename/executable
 
@@ -193,13 +180,19 @@ namespace DarkRift.Cli
 
         private static int Pull(PullOptions opts)
         {
-            string path = VersionManager.GetInstallationPath(Version.Parse(opts.Version), opts.Pro, opts.Standard);
+            string path = VersionManager.GetInstallationPath(Version.Parse(opts.Version), opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             if (path == null)
                 return 1;
 
             Console.WriteLine(path);
             return 0;
+        }
+        
+        private static string GetLatestDarkRiftVersion()
+        {
+            // TODO fetch from server rather than hard coding
+            return "2.4.5";
         }
     }
 }
