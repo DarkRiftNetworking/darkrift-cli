@@ -18,13 +18,13 @@ namespace DarkRift.Cli
         /// <summary>
         /// The tier of DarkRift to use.
         /// </summary>
-        [DataMember()]
+        [DataMember]
         public ServerTier Tier { get; set; }
         
         /// <summary>
         /// If .NET standard or .NET framework should be used.
         /// </summary>
-        [DataMember()]
+        [DataMember]
         public ServerPlatform Platform { get; set; }
 
         /// <summary>

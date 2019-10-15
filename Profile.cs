@@ -24,8 +24,14 @@ namespace DarkRift.Cli
         /// <summary>
         /// The user's Unity Asset Store invoice number.
         /// </summary>
-        [DataMember()]
+        [DataMember]
         public string InvoiceNumber { get; set; }
+        
+        /// <summary>
+        /// The latest version we know of for DarkRift.
+        /// </summary>
+        [DataMember]
+        public string LatestKnownDarkRiftVersion { get; set; }
 
         /// <summary>
         /// Load's the user's profile from disk.

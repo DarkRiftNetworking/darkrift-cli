@@ -19,7 +19,7 @@ namespace DarkRift.Cli
         /// <summary>
         ///     The runtime settings.
         /// </summary>
-        [DataMember()]
+        [DataMember]
         public Runtime Runtime { get; set; }
 
         /// <summary>

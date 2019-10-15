@@ -105,7 +105,7 @@ namespace DarkRift.Cli
             Console.WriteLine($"Cleaning up extracted artifacts...");
 
             foreach (string path in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
-                FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), opts.Version ?? GetLatestDarkRiftVersion(), opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
+                FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), opts.Version ?? VersionManager.GetLatestDarkRiftVersion(), opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             Console.WriteLine(Output.Green($"Created '{Path.GetFileName(targetDirectory)}'"));
 
@@ -118,7 +118,7 @@ namespace DarkRift.Cli
 
             if (project.Runtime == null)
             {
-                project.Runtime = new Runtime(GetLatestDarkRiftVersion(), ServerTier.Free, ServerPlatform.Framework);
+                project.Runtime = new Runtime(VersionManager.GetLatestDarkRiftVersion(), ServerTier.Free, ServerPlatform.Framework);
                 project.Save();
             }
 
@@ -187,12 +187,6 @@ namespace DarkRift.Cli
 
             Console.WriteLine(path);
             return 0;
-        }
-        
-        private static string GetLatestDarkRiftVersion()
-        {
-            // TODO fetch from server rather than hard coding
-            return "2.4.5";
         }
     }
 }

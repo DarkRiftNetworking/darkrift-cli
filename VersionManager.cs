@@ -17,6 +17,11 @@ namespace DarkRift.Cli
         private static readonly string USER_DR_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".darkrift");
 
         /// <summary>
+        /// The latest version of DarkRift.
+        /// </summary>
+        private static string latestDarkRiftVersion;
+
+        /// <summary>
         /// Gets the path to a specified installation, downloading it if required.
         /// </summary>
         /// <param name="version">The version number required.</param>
@@ -46,7 +51,6 @@ namespace DarkRift.Cli
                     uri += $"?invoice={invoiceNumber}";
                 }
 
-                // TODO upload these versions in non-unitypackage format
                 try 
                 {
                     using (WebClient myWebClient = new WebClient())
@@ -70,6 +74,56 @@ namespace DarkRift.Cli
             }
 
             return fullPath;
+        }
+        
+        /// <summary>
+        /// Queries or loads the latest version of DarkRift
+        /// </summary>
+        /// <returns>The latest version of DarkRift</returns>
+        public static string GetLatestDarkRiftVersion()
+        {
+            if (latestDarkRiftVersion != null)
+                return latestDarkRiftVersion;
+
+            Console.WriteLine("Querying server for the latest DarkRift version...");
+
+            string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/";
+            try 
+            {
+                using (WebClient myWebClient = new WebClient())
+                {
+                    string latestJson = myWebClient.DownloadString(uri);
+                    
+                    // Parse out 'latest' field
+                    VersionMetadata versionMetadata = VersionMetadata.Parse(latestJson);
+                    
+                    Console.WriteLine($"Server says the latest version is {versionMetadata.Latest}.");
+                    
+                    Profile profile = Profile.Load();
+                    profile.LatestKnownDarkRiftVersion = versionMetadata.Latest;
+                    profile.Save();
+
+                    latestDarkRiftVersion = versionMetadata.Latest;
+
+                    return versionMetadata.Latest;
+                }
+            }
+            catch (WebException e)
+            {
+                Console.WriteLine(Output.Yellow($"Could not query latest DarkRift version from the server. Will use the last known latest instead.\n\t{e.Message}"));
+                
+                latestDarkRiftVersion = Profile.Load().LatestKnownDarkRiftVersion;
+
+                if (latestDarkRiftVersion == null)
+                {
+                    Console.WriteLine(Output.Red($"No latest DarkRift version stored locally!"));
+                    return null;
+                }
+
+                Console.WriteLine($"Last known latest version is {latestDarkRiftVersion}.");
+
+                return latestDarkRiftVersion;
+            }
         }
 
         /// <summary>
