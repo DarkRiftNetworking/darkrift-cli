@@ -38,7 +38,7 @@ namespace DarkRift.Cli
 
                 string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
                 
-                string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{tier}/{platform}/{version}.zip";
+                string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/{tier}/{platform}/";
                 if (tier == ServerTier.Pro)
                 {
                     string invoiceNumber = GetInvoiceNumber();

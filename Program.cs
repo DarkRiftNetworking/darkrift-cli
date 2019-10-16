@@ -126,13 +126,24 @@ namespace DarkRift.Cli
             if (path == null)
                 return 1;
 
-            string fullPath = Path.Combine(path, "DarkRift.Server.Console.exe"); //TODO handle standard having a different filename/executable
-
+            // Pull arguments from the end of the command line
             Match match = Regex.Match(Environment.CommandLine, @"(?<=(darkrift-cli\.dll|darkrift(\.exe|\.sh)?) run)");
             if (match == null)
                 throw new ArgumentException("Failed to start server. Cannot find start of server arguments.");
 
             string args = Environment.CommandLine.Substring(match.Index);
+
+            // Calculate the executable file to run
+            string fullPath;
+            if (project.Runtime.Platform == ServerPlatform.Framework)
+            {
+                fullPath = Path.Combine(path, "DarkRift.Server.Console.exe");
+            }
+            else
+            {
+                fullPath = "dotnet";
+                args = Path.Combine(path, "Lib", "DarkRift.Server.Console.dll") + " " + args;
+            }
 
             using (Process process = new Process())
             {
@@ -185,7 +196,6 @@ namespace DarkRift.Cli
             if (path == null)
                 return 1;
 
-            Console.WriteLine(path);
             return 0;
         }
     }
