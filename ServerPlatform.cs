@@ -7,6 +7,6 @@ namespace DarkRift.Cli
     enum ServerPlatform
     {
         Framework,
-        Standard
+        Core
     }
 }
