@@ -3,8 +3,19 @@ using System.IO;
 
 namespace DarkRift.Cli
 {
+    /// <summary>
+    ///     Handles templating of generated files.
+    /// </summary>
     class FileTemplater
     {
+        /// <summary>
+        ///     Template the given path file's path and content.
+        /// </summary>
+        /// <param name="filePath">The path of the file.</param>
+        /// <param name="resourceName">The name of the resource being created.</param>
+        /// <param name="darkriftVersion">The version of DarkRift being used.</param>
+        /// <param name="tier">The tier of DarkRift being used.</param>
+        /// <param name="platform">The platform the DarkRift being used was built for.</param>
         public static void TemplateFileAndPath(string filePath, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
         {
             string resolvedPath = TemplateString(filePath, resourceName, darkriftVersion, tier, platform);
@@ -24,6 +35,14 @@ namespace DarkRift.Cli
                 File.Delete(resolvedPath);
         }
 
+        /// <summary>
+        ///     Template the given string.
+        /// </summary>
+        /// <param name="text">The string to template.</param>
+        /// <param name="resourceName">The name of the resource being created.</param>
+        /// <param name="darkriftVersion">The version of DarkRift being used.</param>
+        /// <param name="tier">The tier of DarkRift being used.</param>
+        /// <param name="platform">The platform the DarkRift being used was built for.</param>
         private static string TemplateString(string text, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
         {
             // Keep files containing __k__

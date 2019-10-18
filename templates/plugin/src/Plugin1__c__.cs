@@ -3,7 +3,7 @@ using System;
 using DarkRift;
 using DarkRift.Server;
 
-namespace $__n__
+namespace __n__
 {
     /// <summary>
     /// A simple command that relays messages to all clients

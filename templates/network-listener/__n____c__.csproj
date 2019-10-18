@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="DarkRift" />
-    <Reference Include="DarkRift.Server" />
+    <Reference Include="$(UserProfile)/.darkrift/installed/Free/Framework/2.3.1/Lib/DarkRift.dll" />
+    <Reference Include="$(UserProfile)/.darkrift/installed/Free/Framework/2.3.1/Lib/DarkRift.Server.dll" />
   </ItemGroup>
 </Project>

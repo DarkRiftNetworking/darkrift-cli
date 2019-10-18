@@ -28,9 +28,9 @@ namespace DarkRift.Cli
         /// <param name="pro">Whether the pro version should be used.</param>
         /// <param name="netStandard">Whether the .NET Standard build should be used.</param>
         /// <returns>The path to the installation, or null, if it cannot be provided.</returns>
-        public static string GetInstallationPath(Version version, ServerTier tier, ServerPlatform platform)
+        public static string GetInstallationPath(string version, ServerTier tier, ServerPlatform platform)
         {
-            string fullPath = Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version.ToString());
+            string fullPath = Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version);
 
             if (!Directory.Exists(fullPath))
             {

@@ -2,7 +2,7 @@ using System;
 
 using DarkRift.Server;
 
-namespace $__n__
+namespace __n__
 {
     /// <summary>
     /// A simple log writer that outputs to standard out.

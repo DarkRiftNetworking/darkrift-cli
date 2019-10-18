@@ -35,7 +35,7 @@ namespace DarkRift.Cli
             public string Version { get; set; }
 
             [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
-            public bool Tier { get; set; }
+            public bool Pro { get; set; }
             
             [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Specify the .NET platform of the server to use.")]
             public ServerPlatform Platform { get; set; }
@@ -104,10 +104,15 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Cleaning up extracted artifacts...");
 
+            string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
+
             foreach (string path in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
-                FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), opts.Version ?? VersionManager.GetLatestDarkRiftVersion(), opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
+                FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             Console.WriteLine(Output.Green($"Created '{Path.GetFileName(targetDirectory)}'"));
+
+            // Make sure that the given DarkRift version is actually downloaded.
+            VersionManager.GetInstallationPath(version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             return 0;
         }
@@ -122,7 +127,7 @@ namespace DarkRift.Cli
                 project.Save();
             }
 
-            string path = VersionManager.GetInstallationPath(Version.Parse(project.Runtime.Version), project.Runtime.Tier, project.Runtime.Platform);
+            string path = VersionManager.GetInstallationPath(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
             if (path == null)
                 return 1;
 
@@ -191,7 +196,7 @@ namespace DarkRift.Cli
 
         private static int Pull(PullOptions opts)
         {
-            string path = VersionManager.GetInstallationPath(Version.Parse(opts.Version), opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
+            string path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             if (path == null)
                 return 1;
