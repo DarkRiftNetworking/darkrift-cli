@@ -214,6 +214,12 @@ namespace DarkRift.Cli
                 }
             }
 
+            // if version provided is "latest", it is being replaced with currently most recent one
+            if (opts.Version == "latest")
+            {
+                opts.Version = VersionManager.GetLatestDarkRiftVersion();
+            }
+
             string path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             if (path == null)
