@@ -44,7 +44,7 @@ namespace DarkRift.Cli
                     string invoiceNumber = GetInvoiceNumber();
                     if (invoiceNumber == null)
                     {
-                        Console.WriteLine(Output.Red($"You must provide an invoice number in order to download Pro DarkRift releases."));
+                        Console.Error.WriteLine(Output.Red($"You must provide an invoice number in order to download Pro DarkRift releases."));
                         return null;
                     }
 
@@ -60,7 +60,7 @@ namespace DarkRift.Cli
                 }
                 catch (WebException e)
                 {
-                    Console.WriteLine(Output.Red($"Could not download DarkRift {version} - {tier} (.NET {platform}):\n\t{e.Message}"));
+                    Console.Error.WriteLine(Output.Red($"Could not download DarkRift {version} - {tier} (.NET {platform}):\n\t{e.Message}"));
                     return null;
                 }
 
@@ -116,7 +116,7 @@ namespace DarkRift.Cli
 
                 if (latestDarkRiftVersion == null)
                 {
-                    Console.WriteLine(Output.Red($"No latest DarkRift version stored locally!"));
+                    Console.Error.WriteLine(Output.Red($"No latest DarkRift version stored locally!"));
                     return null;
                 }
 
@@ -142,7 +142,7 @@ namespace DarkRift.Cli
 
                 if (String.IsNullOrWhiteSpace(invoiceNumber))
                 {
-                    Console.WriteLine(Output.Red("No invoice number passed, no changes made."));
+                    Console.Error.WriteLine(Output.Red("No invoice number passed, no changes made."));
                     return null;
                 }
 
