@@ -70,15 +70,19 @@ This is the structure the tool generates for projects:
   |- network-listeners/
   |- plugins/
   |- Readme.md
-  '- Server.xml
+  |- Server.config
+  |- Project.xml
+  '- .gitignore
 ```
 
 This is the structure the tool generates for plugins:
 ```
 <plugin>/
   |- src/
+  |  '- Plugin1.cs
   |- Readme.md
-  '- Server.xml
+  |- <plugin>.csproj
+  '- .gitignore
 ```
 
 ## Templates
