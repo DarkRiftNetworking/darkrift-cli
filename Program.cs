@@ -57,7 +57,7 @@ namespace DarkRift.Cli
         [Verb("pull", HelpText = "Pulls the specified version of DarkRift locally.")]
         class PullOptions
         {
-            [Value(0, Required = true)]
+            [Value(0, Required = false)]
             public String Version { get; set; }
 
             [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
@@ -196,6 +196,30 @@ namespace DarkRift.Cli
 
         private static int Pull(PullOptions opts)
         {
+            if (string.IsNullOrEmpty(opts.Version))
+            {
+                // if version info was omitted, overwrite any parameters with current project settings
+                if (Project.IsCurrentDirectoryAProject())
+                {
+                    var project = Project.Load();
+
+                    opts.Version = project.Runtime.Version;
+                    opts.Platform = project.Runtime.Platform;
+                    opts.Tier = project.Runtime.Tier == ServerTier.Pro;
+                }
+                else
+                {
+                    Console.Error.WriteLine(Output.Red($"You can perform this command only in a project directory."));
+                    return 2;
+                }
+            }
+
+            // if version provided is "latest", it is being replaced with currently most recent one
+            if (opts.Version == "latest")
+            {
+                opts.Version = VersionManager.GetLatestDarkRiftVersion();
+            }
+
             string path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             if (path == null)

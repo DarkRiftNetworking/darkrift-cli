@@ -57,5 +57,15 @@ namespace DarkRift.Cli
                 ser.WriteObject(writer, this);
             }
         }
+
+        /// <summary>
+        /// Returns if the current directory is the directory where project is located
+        /// by checking existence of Project.xml file.
+        /// </summary>
+        /// <returns>Returns if the current directory is a project directory</returns>
+        public static bool IsCurrentDirectoryAProject()
+        {
+            return File.Exists("Project.xml");
+        }
     }
 }
