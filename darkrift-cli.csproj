@@ -34,12 +34,14 @@
     <RemoveDir Directories="$(OutputPath)/templates/" />
   </Target>
 
-  <Target Name="CopyRunScript" AfterTargets="Build">
+  <Target Name="CopyRunScripts" AfterTargets="Build">
     <Copy SourceFiles="$(MSBuildProjectDirectory)/darkrift" DestinationFolder="$(OutputPath)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/darkrift.bat" DestinationFolder="$(OutputPath)" />
   </Target>
 
   <Target Name="CopyAdditionalAssetsOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="$(OutputPath)/darkrift" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="$(OutputPath)/darkrift.bat" DestinationFolder="$(PublishDir)" />
   
     <MakeDir Directories="$(OutputPath)/templates/" />
     <ItemGroup>
