@@ -60,6 +60,8 @@ In most cases you do not need to do this yourself as `darkrift run` will automat
 # Development
 Pull requests are actively encouraged on all open source DarkRift projects! This section will provide some useful advice for extending or improving the DarkRift CLI tool.
 
+An [EditorConfig](https://editorconfig.org/) file is provided that will automatically configure your IDE with the DarkRift style guidelines while working on this project. Many IDEs support it natively but some like VS Code require [an extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig).
+
 ## Project Structure
 This is the structure the tool generates for projects:
 ```
