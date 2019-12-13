@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <RootNamespace>darkrift_cli</RootNamespace>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
@@ -19,7 +19,7 @@
 
   <Target Name="BuildTemplateArchives" AfterTargets="Build">
     <MakeDir Directories="$(OutputPath)/templates/" />
-    
+
     <ItemGroup>
         <FilesToDelete Include="$(OutputPath)/templates/*.zip"/>
     </ItemGroup>
@@ -43,7 +43,7 @@
   <Target Name="CopyAdditionalAssetsOnPublish" AfterTargets="Publish">
     <Copy SourceFiles="$(OutputPath)/darkrift" DestinationFolder="$(PublishDir)" />
     <Copy SourceFiles="$(OutputPath)/darkrift.bat" DestinationFolder="$(PublishDir)" />
-  
+
     <MakeDir Directories="$(OutputPath)/templates/" />
     <ItemGroup>
       <Templates Include="$(OutputPath)/templates/*.zip" />
