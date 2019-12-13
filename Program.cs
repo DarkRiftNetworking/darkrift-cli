@@ -65,16 +65,30 @@ namespace DarkRift.Cli
 
             [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Use the .NET platform of the server to use.")]
             public ServerPlatform Platform { get; set; }
+
+            [Option('d', "docs", Default = false, HelpText = "Download the documentation for this version instead.")]
+            public bool Docs { get; set; }
+        }
+
+        [Verb("docs", HelpText = "Opens the documentation for DarkRift.")]
+        class DocsOptions
+        {
+            [Value(0, Required = false)]
+            public String Version { get; set; }
+
+            [Option('l', "local", Default = false, HelpText = "Opens a local copy of the documentation.")]
+            public bool Local { get; set; }
         }
 
         public static int Main(string[] args)
         {
-            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions>(args)
+            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
                 .MapResult(
                     (NewOptions opts) => New(opts),
                     (RunOptions opts) => Run(opts),
                     (GetOptions opts) => Get(opts),
                     (PullOptions opts) => Pull(opts),
+                    (DocsOptions opts) => Docs(opts),
                     _ => 1);
         }
 
@@ -220,10 +234,55 @@ namespace DarkRift.Cli
                 opts.Version = VersionManager.GetLatestDarkRiftVersion();
             }
 
-            string path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
+            // If --docs was specified, download documentation instead
+            string path;
+            if (opts.Docs)
+            {
+                path = VersionManager.GetDocumentationPath(opts.Version);
+            }
+            else
+            {
+                path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
+            }
 
             if (path == null)
                 return 1;
+
+            return 0;
+        }
+
+        private static int Docs(DocsOptions opts)
+        {
+            if (string.IsNullOrEmpty(opts.Version))
+            {
+                // If version info was omitted, overwrite any parameters with current project settings
+                if (Project.IsCurrentDirectoryAProject())
+                {
+                    var project = Project.Load();
+
+                    opts.Version = project.Runtime.Version;
+                }
+                else
+                {
+                    Console.Error.WriteLine(Output.Red($"You can perform this command only in a project directory."));
+                    return 2;
+                }
+            }
+
+            // If version provided is "latest", it is being replaced with currently most recent one
+            if (opts.Version == "latest")
+            {
+                opts.Version = VersionManager.GetLatestDarkRiftVersion();
+            }
+
+            if (opts.Local)
+            {
+                BrowserUtil.OpenTo("file://" + VersionManager.GetDocumentationPath(opts.Version) + "/index.html");
+            }
+            else
+            {
+                BrowserUtil.OpenTo($"https://darkriftnetworking.com/DarkRift2/Docs/{opts.Version}");
+            }
 
             return 0;
         }

@@ -152,5 +152,46 @@ namespace DarkRift.Cli
 
             return profile.InvoiceNumber;
         }
+
+        /// <summary>
+        /// Gets the path to a specified documentation installation, downloading it if required.
+        /// </summary>
+        /// <param name="version">The version number required.</param>
+        /// <returns>The path to the documentation, or null, if it cannot be provided.</returns>
+        internal static string GetDocumentationPath(string version)
+        {
+            string fullPath = Path.Combine(USER_DR_DIR, "documentation", version);
+
+            if (!Directory.Exists(fullPath))
+            {
+                Console.WriteLine($"Documentation for DarkRift {version} not installed! Downloading package...");
+
+                string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
+
+                string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/Docs/";
+                try
+                {
+                    using (WebClient myWebClient = new WebClient())
+                    {
+                        myWebClient.DownloadFile(uri, stagingPath);
+                    }
+                }
+                catch (WebException e)
+                {
+                    Console.Error.WriteLine(Output.Red($"Could not download documentation for DarkRift {version}:\n\t{e.Message}"));
+                    return null;
+                }
+
+                Console.WriteLine($"Extracting package...");
+
+                Directory.CreateDirectory(fullPath);
+
+                ZipFile.ExtractToDirectory(stagingPath, fullPath, true);
+
+                Console.WriteLine(Output.Green($"Successfully downloaded package."));
+            }
+
+            return fullPath;
+        }
     }
 }
