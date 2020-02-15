@@ -12,20 +12,20 @@ namespace DarkRift.Cli
         /// <summary>
         /// The version of DarkRift to use.
         /// </summary>
-        [DataMember()]
+        [DataMember]
         public String Version { get; set; }
-    
+
+        /// <summary>
+        /// If .NET core or .NET framework should be used.
+        /// </summary>
+        [DataMember]
+        public ServerPlatform Platform { get; set; }
+
         /// <summary>
         /// The tier of DarkRift to use.
         /// </summary>
         [DataMember]
         public ServerTier Tier { get; set; }
-        
-        /// <summary>
-        /// If .NET standard or .NET framework should be used.
-        /// </summary>
-        [DataMember]
-        public ServerPlatform Platform { get; set; }
 
         /// <summary>
         /// Creates a new Runtime configuration element.

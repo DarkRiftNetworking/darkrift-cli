@@ -1,4 +1,4 @@
-using System.Runtime.Versioning;
+
 namespace DarkRift.Cli
 {
     /// <summary>
