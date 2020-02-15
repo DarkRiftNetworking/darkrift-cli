@@ -4,7 +4,7 @@ namespace DarkRift.Cli
     /// <summary>
     /// The .NET platform the server targets.
     /// </summary>
-    enum ServerPlatform
+    public enum ServerPlatform
     {
         Framework,
         Core

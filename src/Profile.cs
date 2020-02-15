@@ -1,15 +1,16 @@
 using System;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace DarkRift.Cli
 {
     /// <summary>
     /// Holds a user's profile settings.
     /// </summary>
-    [DataContract(Name = "Profile")]
-    class Profile
+    // Namespace here is because we used to use DataContractSerializer
+    [XmlRoot(Namespace="http://schemas.datacontract.org/2004/07/DarkRift.Cli")]
+    public class Profile
     {
         /// <summary>
         /// The DarkRift settings directory path.
@@ -24,13 +25,11 @@ namespace DarkRift.Cli
         /// <summary>
         /// The user's Unity Asset Store invoice number.
         /// </summary>
-        [DataMember]
         public string InvoiceNumber { get; set; }
-        
+
         /// <summary>
         /// The latest version we know of for DarkRift.
         /// </summary>
-        [DataMember]
         public string LatestKnownDarkRiftVersion { get; set; }
 
         /// <summary>
@@ -44,8 +43,8 @@ namespace DarkRift.Cli
                 try {
                     using (XmlReader reader = XmlReader.Create(Path.Combine(USER_DR_DIR, "profile.xml")))
                     {
-                        DataContractSerializer ser = new DataContractSerializer(typeof(Profile));
-                        instance = (Profile)ser.ReadObject(reader, true);
+                        XmlSerializer ser = new XmlSerializer(typeof(Profile));
+                        instance = (Profile)ser.Deserialize(reader);
                     }
                 }
                 catch (IOException)
@@ -53,7 +52,7 @@ namespace DarkRift.Cli
                     instance = new Profile();
                 }
             }
-            
+
             return instance;
         }
 
@@ -65,8 +64,8 @@ namespace DarkRift.Cli
             Directory.CreateDirectory(USER_DR_DIR);
             using (XmlWriter writer = XmlWriter.Create(Path.Combine(USER_DR_DIR, "profile.xml"), new XmlWriterSettings { Indent = true }))
             {
-                DataContractSerializer ser = new DataContractSerializer(typeof(Profile));
-                ser.WriteObject(writer, this);
+                XmlSerializer ser = new XmlSerializer(typeof(Profile));
+                ser.Serialize(writer, this);
             }
         }
     }

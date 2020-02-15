@@ -3,7 +3,7 @@ namespace DarkRift.Cli
     /// <summary>
     /// The tier of DarkRift server.
     /// </summary>
-    enum ServerTier
+    public enum ServerTier
     {
         Free,
         Pro

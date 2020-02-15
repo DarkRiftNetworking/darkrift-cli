@@ -1,31 +1,33 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace DarkRift.Cli
 {
     /// <summary>
     /// Holds a project's runtime settings.
     /// </summary>
-    [DataContract(Name = "Runtime")]
-    class Runtime
+    public class Runtime
     {
         /// <summary>
         /// The version of DarkRift to use.
         /// </summary>
-        [DataMember]
         public String Version { get; set; }
 
         /// <summary>
         /// If .NET core or .NET framework should be used.
         /// </summary>
-        [DataMember]
         public ServerPlatform Platform { get; set; }
 
         /// <summary>
         /// The tier of DarkRift to use.
         /// </summary>
-        [DataMember]
         public ServerTier Tier { get; set; }
+
+        /// <summary>
+        /// Creates a new Runtime configuration element.
+        /// </summary>
+        public Runtime()
+        {
+        }
 
         /// <summary>
         /// Creates a new Runtime configuration element.

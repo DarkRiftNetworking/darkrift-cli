@@ -1,15 +1,15 @@
-using System;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace DarkRift.Cli
 {
     /// <summary>
     /// Holds a project's settings.
     /// </summary>
-    [DataContract(Name = "Project")]
-    class Project
+    // Namespace here is because we used to use DataContractSerializer
+    [XmlRoot(Namespace="http://schemas.datacontract.org/2004/07/DarkRift.Cli")]
+    public class Project
     {
         /// <summary>
         /// The singleton instance of the profile class.
@@ -19,7 +19,6 @@ namespace DarkRift.Cli
         /// <summary>
         ///     The runtime settings.
         /// </summary>
-        [DataMember]
         public Runtime Runtime { get; set; }
 
         /// <summary>
@@ -33,8 +32,8 @@ namespace DarkRift.Cli
                 try {
                     using (XmlReader reader = XmlReader.Create("Project.xml"))
                     {
-                        DataContractSerializer ser = new DataContractSerializer(typeof(Project));
-                        instance = (Project)ser.ReadObject(reader, true);
+                        XmlSerializer ser = new XmlSerializer(typeof(Project));
+                        instance = (Project)ser.Deserialize(reader);
                     }
                 }
                 catch (IOException)
@@ -42,7 +41,7 @@ namespace DarkRift.Cli
                     instance = new Project();
                 }
             }
-            
+
             return instance;
         }
 
@@ -53,8 +52,8 @@ namespace DarkRift.Cli
         {
             using (XmlWriter writer = XmlWriter.Create("Project.xml", new XmlWriterSettings { Indent = true }))
             {
-                DataContractSerializer ser = new DataContractSerializer(typeof(Project));
-                ser.WriteObject(writer, this);
+                XmlSerializer ser = new XmlSerializer(typeof(Project));
+                ser.Serialize(writer, this);
             }
         }
 
