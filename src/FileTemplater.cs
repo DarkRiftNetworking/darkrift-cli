@@ -6,7 +6,7 @@ namespace DarkRift.Cli
     /// <summary>
     ///     Handles templating of generated files.
     /// </summary>
-    class FileTemplater
+    internal class FileTemplater
     {
         /// <summary>
         ///     Template the given path file's path and content.
@@ -52,17 +52,17 @@ namespace DarkRift.Cli
             // Template __n__ to the resource name
             if (text.Contains("__n__"))
                 text = text.Replace("__n__", resourceName);
-            
+
             // Template __v__ to the darkrift version
             if (text.Contains("__v__"))
                 text = text.Replace("__v__", darkriftVersion);
-            
+
             // Template __t__ to 'Pro' or 'Free'
             if (text.Contains("__t__"))
                 text = text.Replace("__t__", tier.ToString());
-            
+
             // Template __p__ to 'Standard' or 'Framework'
-            if (text.Contains("__p__")) 
+            if (text.Contains("__p__"))
                 text = text.Replace("__p__", platform.ToString());
 
             return text;

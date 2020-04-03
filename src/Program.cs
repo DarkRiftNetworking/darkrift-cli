@@ -12,7 +12,7 @@ using Crayon;
 
 namespace DarkRift.Cli
 {
-    class Program
+    internal class Program
     {
         /// <summary>
         /// The location of the template archives.
@@ -20,7 +20,7 @@ namespace DarkRift.Cli
         private static readonly string TEMPLATES_PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates");
 
         [Verb("new", HelpText = "Create a new DarkRift project.")]
-        class NewOptions
+        private class NewOptions
         {
             [Option('f', Default = false, HelpText = "Force creation overwriting any files that already exist in the directory.")]
             public bool Force { get; set; }
@@ -42,23 +42,23 @@ namespace DarkRift.Cli
         }
 
         [Verb("run", HelpText = "Run a DarkRift project.")]
-        class RunOptions
+        private class RunOptions
         {
 
         }
 
         [Verb("get", HelpText = "Downloads a plugin package into this server.")]
-        class GetOptions
+        private class GetOptions
         {
             [Value(0, Required = true)]
             public string Url { get; set; }
         }
 
         [Verb("pull", HelpText = "Pulls the specified version of DarkRift locally.")]
-        class PullOptions
+        private class PullOptions
         {
             [Value(0, Required = false)]
-            public String Version { get; set; }
+            public string Version { get; set; }
 
             [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
             public bool Tier { get; set; }
@@ -71,10 +71,10 @@ namespace DarkRift.Cli
         }
 
         [Verb("docs", HelpText = "Opens the documentation for DarkRift.")]
-        class DocsOptions
+        private class DocsOptions
         {
             [Value(0, Required = false)]
-            public String Version { get; set; }
+            public string Version { get; set; }
 
             [Option('l', "local", Default = false, HelpText = "Opens a local copy of the documentation.")]
             public bool Local { get; set; }
@@ -131,7 +131,7 @@ namespace DarkRift.Cli
             return 0;
         }
 
-        private static int Run(RunOptions opts)
+        private static int Run(RunOptions _)
         {
             Project project = Project.Load();
 

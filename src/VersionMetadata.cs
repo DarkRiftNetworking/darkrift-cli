@@ -9,7 +9,7 @@ namespace DarkRift.Cli
     /// Holds a user's profile settings.
     /// </summary>
     [DataContract]
-    class VersionMetadata
+    internal class VersionMetadata
     {
         /// <summary>
         /// The latest stable server version available.

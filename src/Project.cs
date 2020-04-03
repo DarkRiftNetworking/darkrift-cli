@@ -14,7 +14,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// The singleton instance of the profile class.
         /// </summary>
-        static Project instance;
+        private static Project instance;
 
         /// <summary>
         ///     The runtime settings.

@@ -10,7 +10,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// The version of DarkRift to use.
         /// </summary>
-        public String Version { get; set; }
+        public string Version { get; set; }
 
         /// <summary>
         /// If .NET core or .NET framework should be used.

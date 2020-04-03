@@ -9,7 +9,7 @@ namespace DarkRift.Cli
     /// <summary>
     /// Manages DarkRift installations.
     /// </summary>
-    class VersionManager
+    internal class VersionManager
     {
         /// <summary>
         /// The DarkRift settings directory path.
@@ -37,7 +37,7 @@ namespace DarkRift.Cli
                 Console.WriteLine($"DarkRift {version} - {tier} (.NET {platform}) not installed! Downloading package...");
 
                 string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
-                
+
                 string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/{tier}/{platform}/";
                 if (tier == ServerTier.Pro)
                 {
@@ -51,7 +51,7 @@ namespace DarkRift.Cli
                     uri += $"?invoice={invoiceNumber}";
                 }
 
-                try 
+                try
                 {
                     using (WebClient myWebClient = new WebClient())
                     {
@@ -75,7 +75,7 @@ namespace DarkRift.Cli
 
             return fullPath;
         }
-        
+
         /// <summary>
         /// Queries or loads the latest version of DarkRift
         /// </summary>
@@ -88,17 +88,17 @@ namespace DarkRift.Cli
             Console.WriteLine("Querying server for the latest DarkRift version...");
 
             string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/";
-            try 
+            try
             {
                 using (WebClient myWebClient = new WebClient())
                 {
                     string latestJson = myWebClient.DownloadString(uri);
-                    
+
                     // Parse out 'latest' field
                     VersionMetadata versionMetadata = VersionMetadata.Parse(latestJson);
-                    
+
                     Console.WriteLine($"Server says the latest version is {versionMetadata.Latest}.");
-                    
+
                     Profile profile = Profile.Load();
                     profile.LatestKnownDarkRiftVersion = versionMetadata.Latest;
                     profile.Save();
@@ -111,7 +111,7 @@ namespace DarkRift.Cli
             catch (WebException e)
             {
                 Console.WriteLine(Output.Yellow($"Could not query latest DarkRift version from the server. Will use the last known latest instead.\n\t{e.Message}"));
-                
+
                 latestDarkRiftVersion = Profile.Load().LatestKnownDarkRiftVersion;
 
                 if (latestDarkRiftVersion == null)
@@ -134,13 +134,13 @@ namespace DarkRift.Cli
         {
             Profile profile = Profile.Load();
 
-            if (String.IsNullOrWhiteSpace(profile.InvoiceNumber))
+            if (string.IsNullOrWhiteSpace(profile.InvoiceNumber))
             {
                 Console.WriteLine("To download a Pro release you must provide an invoice number to verify your purchase. This will usually be found in your recept from the Unity Asset Store.");
                 Console.WriteLine("Please enter it: ");
                 string invoiceNumber = Console.ReadLine();
 
-                if (String.IsNullOrWhiteSpace(invoiceNumber))
+                if (string.IsNullOrWhiteSpace(invoiceNumber))
                 {
                     Console.Error.WriteLine(Output.Red("No invoice number passed, no changes made."));
                     return null;

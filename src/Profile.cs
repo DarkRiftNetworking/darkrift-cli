@@ -20,7 +20,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// The singleton instance of the profile class.
         /// </summary>
-        static Profile instance;
+        private static Profile instance;
 
         /// <summary>
         /// The user's Unity Asset Store invoice number.
