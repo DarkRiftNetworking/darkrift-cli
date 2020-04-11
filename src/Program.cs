@@ -145,6 +145,7 @@ namespace DarkRift.Cli
             return installation.Run(opts.Values);
         }
 
+        // TODO rename this to add? add package?
         private int Get(GetOptions opts)
         {
             if (!Uri.TryCreate(opts.Url, UriKind.RelativeOrAbsolute, out Uri uri))
@@ -155,23 +156,56 @@ namespace DarkRift.Cli
             }
 
             string stagingDirectory = Path.Combine(".", ".darkrift", "temp");
-            string stagingPath = Path.Combine(stagingDirectory, "Download.zip");
+            string downloadPath = Path.Combine(stagingDirectory, "download.zip");
             Directory.CreateDirectory(stagingDirectory);
 
             Console.WriteLine($"Downloading package...");
 
             using (WebClient myWebClient = new WebClient())
             {
-                myWebClient.DownloadFile(uri, stagingPath);
+                myWebClient.DownloadFile(uri, downloadPath);
             }
+
+            // TODO cache downloaded packages somewhere
 
             Console.WriteLine($"Extracting package...");
 
-            // TODO find a better place for this
-            string targetDirectory = Path.Combine(".", "plugins");
-            Directory.CreateDirectory(targetDirectory);
+            string extractDirectory = Path.Combine(stagingDirectory, "extract");
+            Directory.Delete(extractDirectory, true);
+            ZipFile.ExtractToDirectory(downloadPath, extractDirectory, true);
 
-            ZipFile.ExtractToDirectory(stagingPath, targetDirectory, true);
+            Directory.CreateDirectory(extractDirectory);
+
+            if (!Package.IsDirectoryAPackage(extractDirectory))
+            {
+                Console.WriteLine(Output.Red($"Package from {opts.Url} did not contain a Package.xml file."));
+                return 1;
+            }
+
+            Console.WriteLine($"Reading package...");
+
+            Package package = Package.Load(extractDirectory);
+            if (package == null)
+            {
+                Console.WriteLine(Output.Red($"Could not read Package.xml file from {opts.Url}."));
+                return 1;
+            }
+
+            // TODO should the copy stage be done from a local repository in a JIT step before we run the server?
+            string targetDirectory = Path.Combine(Project.Load().LocalPackageDirectory ?? Path.Combine(".", "packages"), package.Group ?? "unknown", package.Name);
+            if (Directory.Exists(targetDirectory))
+            {
+                // TODO update command
+                // TODO this is probably fine for dependencies, unless there's a mismatch
+                Console.WriteLine(Output.Red($"Cannot add package {opts.Url} as the package is already present in project."));
+                return 1;
+            }
+
+            Console.WriteLine($"Copying to project...");
+
+            Directory.Move(stagingDirectory, targetDirectory);
+
+            // TODO add to project file
 
             Console.WriteLine(Output.Green($"Sucessfully downloaded package into plugins directory."));
 

@@ -17,6 +17,11 @@ namespace DarkRift.Cli
         public Runtime Runtime { get; set; }
 
         /// <summary>
+        /// The path project packages should be stored in.
+        /// </summary>
+        public string LocalPackageDirectory { get; set; } = Path.Combine(".", "packages");
+
+        /// <summary>
         /// Load's the project from disk.
         /// </summary>
         /// <param>The file to load.</param>
