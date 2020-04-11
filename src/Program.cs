@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Net;
 using CommandLine;
 using Crayon;
+using System.Collections.Generic;
 
 namespace DarkRift.Cli
 {
@@ -44,7 +45,8 @@ namespace DarkRift.Cli
         [Verb("run", HelpText = "Run a DarkRift project.")]
         private class RunOptions
         {
-
+            [Value(0)]
+            public IEnumerable<string> Values { get; set; }
         }
 
         [Verb("get", HelpText = "Downloads a plugin package into this server.")]
@@ -82,7 +84,7 @@ namespace DarkRift.Cli
 
         public static int Main(string[] args)
         {
-            return CommandLine.Parser.Default.ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
+            return new Parser(SetupParser).ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
                 .MapResult(
                     (NewOptions opts) => New(opts),
                     (RunOptions opts) => Run(opts),
@@ -90,6 +92,19 @@ namespace DarkRift.Cli
                     (PullOptions opts) => Pull(opts),
                     (DocsOptions opts) => Docs(opts),
                     _ => 1);
+        }
+
+        /// <summary>
+        /// Setup the parser for our application.
+        /// </summary>
+        /// <param name="settings">The settings for the parser.</param>
+        private static void SetupParser(ParserSettings settings)
+        {
+            // Default
+            settings.HelpWriter = Console.Error;
+
+            // Added for 'run' command
+            settings.EnableDashDash = true;
         }
 
         private static int New(NewOptions opts)
@@ -131,7 +146,7 @@ namespace DarkRift.Cli
             return 0;
         }
 
-        private static int Run(RunOptions _)
+        private static int Run(RunOptions opts)
         {
             Project project = Project.Load();
 
@@ -145,28 +160,23 @@ namespace DarkRift.Cli
             if (path == null)
                 return 1;
 
-            // Pull arguments from the end of the command line
-            Match match = Regex.Match(Environment.CommandLine, @"(?<=(darkrift-cli\.dll|darkrift(\.exe|\.sh)?) run)");
-            if (match == null)
-                throw new ArgumentException("Failed to start server. Cannot find start of server arguments.");
-
-            string args = Environment.CommandLine.Substring(match.Index);
-
             // Calculate the executable file to run
             string fullPath;
+            IEnumerable<string> args;
             if (project.Runtime.Platform == ServerPlatform.Framework)
             {
                 fullPath = Path.Combine(path, "DarkRift.Server.Console.exe");
+                args = opts.Values;
             }
             else
             {
                 fullPath = "dotnet";
-                args = Path.Combine(path, "Lib", "DarkRift.Server.Console.dll") + " " + args;
+                args = opts.Values.Prepend(Path.Combine(path, "Lib", "DarkRift.Server.Console.dll"));
             }
 
             using (Process process = new Process())
             {
-                process.StartInfo = new ProcessStartInfo(fullPath, args);
+                process.StartInfo = new ProcessStartInfo(fullPath, string.Join(" ", args));
                 process.Start();
 
                 process.WaitForExit();
