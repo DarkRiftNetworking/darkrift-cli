@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
@@ -30,7 +30,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// The latest version we know of for DarkRift.
         /// </summary>
-        public string LatestKnownDarkRiftVersion { get; set; }
+        public Version LatestKnownDarkRiftVersion { get; set; }
 
         /// <summary>
         /// Load's the user's profile from disk.

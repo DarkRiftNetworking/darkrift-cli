@@ -1,3 +1,4 @@
+﻿using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -14,7 +15,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// The latest stable server version available.
         /// </summary>
-        public string Latest => latest;
+        public Version Latest => new Version(latest);
 
 #pragma warning disable CS0649
         /// <summary>

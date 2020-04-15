@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace DarkRift.Cli
@@ -16,7 +16,7 @@ namespace DarkRift.Cli
         /// <param name="darkriftVersion">The version of DarkRift being used.</param>
         /// <param name="tier">The tier of DarkRift being used.</param>
         /// <param name="platform">The platform the DarkRift being used was built for.</param>
-        public static void TemplateFileAndPath(string filePath, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
+        public static void TemplateFileAndPath(string filePath, string resourceName, Version darkriftVersion, ServerTier tier, ServerPlatform platform)
         {
             string resolvedPath = TemplateString(filePath, resourceName, darkriftVersion, tier, platform);
 
@@ -43,27 +43,27 @@ namespace DarkRift.Cli
         /// <param name="darkriftVersion">The version of DarkRift being used.</param>
         /// <param name="tier">The tier of DarkRift being used.</param>
         /// <param name="platform">The platform the DarkRift being used was built for.</param>
-        private static string TemplateString(string text, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
+        private static string TemplateString(string text, string resourceName, Version darkriftVersion, ServerTier tier, ServerPlatform platform)
         {
             // Keep files containing __k__
             if (text.Contains("__k__"))
-                text = text.Replace("__k__", "");
+                text = text.Replace("$__k__", "");
 
             // Template __n__ to the resource name
             if (text.Contains("__n__"))
-                text = text.Replace("__n__", resourceName);
+                text = text.Replace("$__n__", resourceName);
 
             // Template __v__ to the darkrift version
             if (text.Contains("__v__"))
-                text = text.Replace("__v__", darkriftVersion);
+                text = text.Replace("$__v__", darkriftVersion.ToString());
 
             // Template __t__ to 'Pro' or 'Free'
             if (text.Contains("__t__"))
-                text = text.Replace("__t__", tier.ToString());
+                text = text.Replace("$__t__", tier.ToString());
 
             // Template __p__ to 'Standard' or 'Framework'
             if (text.Contains("__p__"))
-                text = text.Replace("__p__", platform.ToString());
+                text = text.Replace("$__p__", platform.ToString());
 
             return text;
         }

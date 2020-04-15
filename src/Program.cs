@@ -20,68 +20,6 @@ namespace DarkRift.Cli
         /// <summary>
         private static readonly string TEMPLATES_PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates");
 
-        [Verb("new", HelpText = "Create a new DarkRift project.")]
-        private class NewOptions
-        {
-            [Option('f', Default = false, HelpText = "Force creation overwriting any files that already exist in the directory.")]
-            public bool Force { get; set; }
-
-            [Value(0, HelpText = "The name of the template to unpack.", Required = true)]
-            public string Type { get; set; }
-
-            [Value(1, HelpText = "The directory to unpack the template in.")]
-            public string TargetDirectory { get; set; }
-
-            [Option("version", HelpText = "Specify the DarkRift version to use.")]
-            public string Version { get; set; }
-
-            [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
-            public bool Pro { get; set; }
-
-            [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Specify the .NET platform of the server to use.")]
-            public ServerPlatform Platform { get; set; }
-        }
-
-        [Verb("run", HelpText = "Run a DarkRift project.")]
-        private class RunOptions
-        {
-            [Value(0)]
-            public IEnumerable<string> Values { get; set; }
-        }
-
-        [Verb("get", HelpText = "Downloads a plugin package into this server.")]
-        private class GetOptions
-        {
-            [Value(0, Required = true)]
-            public string Url { get; set; }
-        }
-
-        [Verb("pull", HelpText = "Pulls the specified version of DarkRift locally.")]
-        private class PullOptions
-        {
-            [Value(0, Required = false)]
-            public string Version { get; set; }
-
-            [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
-            public bool Tier { get; set; }
-
-            [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Use the .NET platform of the server to use.")]
-            public ServerPlatform Platform { get; set; }
-
-            [Option('d', "docs", Default = false, HelpText = "Download the documentation for this version instead.")]
-            public bool Docs { get; set; }
-        }
-
-        [Verb("docs", HelpText = "Opens the documentation for DarkRift.")]
-        private class DocsOptions
-        {
-            [Value(0, Required = false)]
-            public string Version { get; set; }
-
-            [Option('l', "local", Default = false, HelpText = "Opens a local copy of the documentation.")]
-            public bool Local { get; set; }
-        }
-
         public static int Main(string[] args)
         {
             return new Parser(SetupParser).ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
@@ -117,7 +55,7 @@ namespace DarkRift.Cli
             if (Directory.GetFiles(targetDirectory).Length > 0 && !opts.Force)
             {
                 Console.Error.WriteLine(Output.Red("Cannot create from template, the directory is not empty. Use -f to force creation."));
-                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + CommandLine.Parser.Default.FormatCommandLine(new NewOptions { Type = opts.Type, TargetDirectory = opts.TargetDirectory, Force = true }));
+                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + Parser.Default.FormatCommandLine(new NewOptions { Type = opts.Type, TargetDirectory = opts.TargetDirectory, Force = true }));
                 return 1;
             }
 
@@ -133,7 +71,7 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Cleaning up extracted artifacts...");
 
-            string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
+            Version version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
 
             foreach (string path in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
                 FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform);
@@ -220,7 +158,14 @@ namespace DarkRift.Cli
 
         private static int Pull(PullOptions opts)
         {
-            if (string.IsNullOrEmpty(opts.Version))
+            // If --list was specified, list installed versions and tell if documentation for that version is available locally
+            if (opts.List)
+            {
+                VersionManager.ListInstalledVersions();
+                return 0;
+            }
+            
+            if (opts.Version == null)
             {
                 // if version info was omitted, overwrite any parameters with current project settings
                 if (Project.IsCurrentDirectoryAProject())
@@ -239,31 +184,34 @@ namespace DarkRift.Cli
             }
 
             // if version provided is "latest", it is being replaced with currently most recent one
-            if (opts.Version == "latest")
+            if (opts.Latest)
             {
                 opts.Version = VersionManager.GetLatestDarkRiftVersion();
             }
 
             // If --docs was specified, download documentation instead
-            string path;
+            string path = null;
             if (opts.Docs)
             {
-                path = VersionManager.GetDocumentationPath(opts.Version);
+                path = VersionManager.GetDocumentationPath(opts.Version, opts.Force);
             }
-            else
+            else if (opts.Version != null)
             {
-                path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
+                path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform, opts.Force);
             }
 
             if (path == null)
+            {
+                Console.WriteLine("Invalid command, please run \"darkrift help pull\"");
                 return 1;
+            }
 
             return 0;
         }
 
         private static int Docs(DocsOptions opts)
         {
-            if (string.IsNullOrEmpty(opts.Version))
+            if (opts.Version == null)
             {
                 // If version info was omitted, overwrite any parameters with current project settings
                 if (Project.IsCurrentDirectoryAProject())
@@ -280,16 +228,16 @@ namespace DarkRift.Cli
             }
 
             // If version provided is "latest", it is being replaced with currently most recent one
-            if (opts.Version == "latest")
+            if (opts.Latest)
             {
-                opts.Version = VersionManager.GetLatestDarkRiftVersion();
+                
             }
 
             if (opts.Local)
             {
                 BrowserUtil.OpenTo("file://" + VersionManager.GetDocumentationPath(opts.Version) + "/index.html");
             }
-            else
+            else if (opts.Version != null)
             {
                 BrowserUtil.OpenTo($"https://darkriftnetworking.com/DarkRift2/Docs/{opts.Version}");
             }
