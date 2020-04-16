@@ -183,6 +183,8 @@ namespace DarkRift.Cli
                 }
             }
 
+            ServerTier actualTier = opts.Tier ? ServerTier.Pro : ServerTier.Free;
+
             // if version provided is "latest", it is being replaced with currently most recent one
             if (opts.Latest)
             {
@@ -190,19 +192,32 @@ namespace DarkRift.Cli
             }
 
             // If --docs was specified, download documentation instead
-            string path = null;
+            bool success = false;
             if (opts.Docs)
             {
-                path = VersionManager.GetDocumentationPath(opts.Version, opts.Force);
+                if (!opts.Force)
+                {
+                    if (success = VersionManager.IsDocumentationInstalled(opts.Version))
+                        Console.WriteLine(Output.Green($"Documentation for DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                }
+                if (!success)
+                    success = VersionManager.DownloadDocumentation(opts.Version);
             }
             else if (opts.Version != null)
             {
-                path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform, opts.Force);
+                if (!opts.Force)
+                {
+                    if (success = VersionManager.IsVersionInstalled(opts.Version, actualTier, opts.Platform))
+                        Console.WriteLine(Output.Green($"DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                }
+
+                if (!success)
+                    success = VersionManager.DownloadVersion(opts.Version, actualTier, opts.Platform);
             }
 
-            if (path == null)
+            if (!success)
             {
-                Console.WriteLine("Invalid command, please run \"darkrift help pull\"");
+                Console.Error.WriteLine(Output.Red("Invalid command, please run \"darkrift help pull\""));
                 return 1;
             }
 
@@ -230,7 +245,7 @@ namespace DarkRift.Cli
             // If version provided is "latest", it is being replaced with currently most recent one
             if (opts.Latest)
             {
-                
+                opts.Version = VersionManager.GetLatestDarkRiftVersion();
             }
 
             if (opts.Local)

@@ -29,55 +29,61 @@ namespace DarkRift.Cli
         /// <param name="pro">Whether the pro version should be used.</param>
         /// <param name="platform">Whether the .NET Standard build should be used.</param>
         /// <returns>The path to the installation, or null, if it cannot be provided.</returns>
-        public static string GetInstallationPath(Version version, ServerTier tier, ServerPlatform platform, bool force = false)
+        public static string GetInstallationPath(Version version, ServerTier tier, ServerPlatform platform)
+        {
+            if (IsVersionInstalled(version, tier, platform))
+                return Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version.ToString());
+            Console.WriteLine(Output.Green($"DarkRift {version} - {tier} (.NET {platform}) not installed! To download run \"darkrift pull {version}\""));
+            return null;
+        }
+
+        public static bool DownloadVersion(Version version, ServerTier tier, ServerPlatform platform)
         {
             string fullPath = Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version.ToString());
 
-            if (!Directory.Exists(fullPath) || force)
+            string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
+
+            string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/{tier}/{platform}/";
+            if (tier == ServerTier.Pro)
             {
-                if (!Directory.Exists(fullPath))
-                    Console.WriteLine($"DarkRift {version} - {tier} (.NET {platform}) not installed! Downloading package...");
-
-                string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
-
-                string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/{tier}/{platform}/";
-                if (tier == ServerTier.Pro)
+                string invoiceNumber = GetInvoiceNumber();
+                if (invoiceNumber == null)
                 {
-                    string invoiceNumber = GetInvoiceNumber();
-                    if (invoiceNumber == null)
-                    {
-                        Console.Error.WriteLine(Output.Red($"You must provide an invoice number in order to download Pro DarkRift releases."));
-                        return null;
-                    }
-
-                    uri += $"?invoice={invoiceNumber}";
+                    Console.Error.WriteLine(Output.Red($"You must provide an invoice number in order to download Pro DarkRift releases."));
+                    return false;
                 }
 
-                try
-                {
-                    using (WebClient myWebClient = new WebClient())
-                    {
-                        myWebClient.DownloadFile(uri, stagingPath);
-                    }
-                }
-                catch (WebException e)
-                {
-                    Console.Error.WriteLine(Output.Red($"Could not download DarkRift {version} - {tier} (.NET {platform}):\n\t{e.Message}"));
-                    return null;
-                }
-
-                Console.WriteLine($"Extracting package...");
-
-                Directory.CreateDirectory(fullPath);
-
-                ZipFile.ExtractToDirectory(stagingPath, fullPath, true);
-
-                Console.WriteLine(Output.Green($"Successfully downloaded package."));
+                uri += $"?invoice={invoiceNumber}";
             }
-            else
-                Console.WriteLine(Output.Green($"DarkRift {version} - {tier} (.NET {platform}) already installed! "));
 
-            return fullPath;
+            try
+            {
+                using (WebClient myWebClient = new WebClient())
+                {
+                    myWebClient.DownloadFile(uri, stagingPath);
+                }
+            }
+            catch (WebException e)
+            {
+                Console.Error.WriteLine(Output.Red($"Could not download DarkRift {version} - {tier} (.NET {platform}):\n\t{e.Message}"));
+                return false;
+            }
+
+            Console.WriteLine($"Extracting package...");
+
+            Directory.CreateDirectory(fullPath);
+
+            ZipFile.ExtractToDirectory(stagingPath, fullPath, true);
+
+            Console.WriteLine(Output.Green($"Successfully downloaded package."));
+
+            return true;
+        }
+
+        public static bool IsVersionInstalled(Version version, ServerTier tier, ServerPlatform platform)
+        {
+            Version[] versions = GetVersionDirectories(tier, platform);
+            return Array.Exists(versions, (v) => v == version);
         }
 
         /// <summary>
@@ -118,14 +124,13 @@ namespace DarkRift.Cli
             // Since the free version only supports .Net Framework I'm not adding support here
             Version[] freeVersions = GetVersionDirectories(ServerTier.Free, ServerPlatform.Framework);
 
-            // I suppose it's "pro" like this
             Version[] proFramework = GetVersionDirectories(ServerTier.Pro, ServerPlatform.Framework);
             Version[] proCore = GetVersionDirectories(ServerTier.Pro, ServerPlatform.Core);
 
             // Well, you gotta install it, you don't know what you are losing
             if (freeVersions.Length == 0 && proFramework.Length == 0 && proCore.Length == 0)
             {
-                Console.WriteLine(Output.Red($"You don't have any version of DarkRift installed"));
+                Console.Error.WriteLine(Output.Red($"You don't have any version of DarkRift installed"));
                 return;
             }
 
@@ -248,43 +253,45 @@ namespace DarkRift.Cli
         /// </summary>
         /// <param name="version">The version number required.</param>
         /// <returns>The path to the documentation, or null, if it cannot be provided.</returns>
-        internal static string GetDocumentationPath(Version version, bool force = false)
+        internal static string GetDocumentationPath(Version version)
         {
-            string fullPath = Path.Combine(USER_DR_DIR, "documentation", version.ToString());
+            return Path.Combine(USER_DR_DIR, "documentation", version.ToString());
+        }
 
-            if (!Directory.Exists(fullPath) || force)
+        public static bool DownloadDocumentation(Version version)
+        {
+            string fullPath = GetDocumentationPath(version);
+
+            string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
+
+            string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/Docs/";
+            try
             {
-                if (!Directory.Exists(fullPath))
-                    Console.WriteLine($"Documentation for DarkRift {version} not installed! Downloading package...");
-
-                string stagingPath = Path.Combine(USER_DR_DIR, "Download.zip");
-
-                string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/Docs/";
-                try
+                using (WebClient myWebClient = new WebClient())
                 {
-                    using (WebClient myWebClient = new WebClient())
-                    {
-                        myWebClient.DownloadFile(uri, stagingPath);
-                    }
+                    myWebClient.DownloadFile(uri, stagingPath);
                 }
-                catch (WebException e)
-                {
-                    Console.Error.WriteLine(Output.Red($"Could not download documentation for DarkRift {version}:\n\t{e.Message}"));
-                    return null;
-                }
-
-                Console.WriteLine($"Extracting package...");
-
-                Directory.CreateDirectory(fullPath);
-
-                ZipFile.ExtractToDirectory(stagingPath, fullPath, true);
-
-                Console.WriteLine(Output.Green($"Successfully downloaded package."));
             }
-            else
-                Console.WriteLine(Output.Green($"Documentation for DarkRift {version} already installed!"));
+            catch (WebException e)
+            {
+                Console.Error.WriteLine(Output.Red($"Could not download documentation for DarkRift {version}:\n\t{e.Message}"));
+                return false;
+            }
 
-            return fullPath;
+            Console.WriteLine($"Extracting package...");
+
+            Directory.CreateDirectory(fullPath);
+
+            ZipFile.ExtractToDirectory(stagingPath, fullPath, true);
+
+            Console.WriteLine(Output.Green($"Successfully downloaded package."));
+
+            return true;
+        }
+
+        public static bool IsDocumentationInstalled(Version version)
+        {
+            return Directory.Exists(GetDocumentationPath(version));
         }
     }
 }
