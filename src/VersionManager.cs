@@ -253,7 +253,7 @@ namespace DarkRift.Cli
         /// </summary>
         /// <param name="version">The version number required.</param>
         /// <returns>The path to the documentation, or null, if it cannot be provided.</returns>
-        internal static string GetDocumentationPath(Version version)
+        public static string GetDocumentationPath(Version version)
         {
             return Path.Combine(USER_DR_DIR, "documentation", version.ToString());
         }
