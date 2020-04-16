@@ -48,18 +48,20 @@ namespace DarkRift.Cli
         private static int New(NewOptions opts)
         {
             Version version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
+
             if (!VersionManager.IsVersionInstalled(version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform))
             {
                 Console.WriteLine($"DarkRift version {version} is not installed. Would you like to install now?");
                 bool ask = true;
                 while (ask)
                 {
-                    char answer = Console.ReadKey().KeyChar;
-                    if (char.ToLower(answer) == 'n')
+                    char answer = char.ToLower(Console.ReadKey().KeyChar);
+                    if (answer == 'n')
                         return 0;
-                    else
+                    else if (answer == 'y')
                     {
                         ask = false;
+                        // Executes the command to download the version with the options required
                         if (Pull(new PullOptions()
                         {
                             Version = version,
@@ -69,6 +71,7 @@ namespace DarkRift.Cli
                         }) != 0)
                         {
                             Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required, exiting New"));
+                            return 2;
                         }
                     }
                 }
