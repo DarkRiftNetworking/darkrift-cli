@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net4.5</TargetFramework>
-    <RootNamespace>$__n__</RootNamespace>
+    <RootNamespace>__n__</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

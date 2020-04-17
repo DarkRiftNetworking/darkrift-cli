@@ -49,32 +49,17 @@ namespace DarkRift.Cli
         {
             Version version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
 
-            if (!VersionManager.IsVersionInstalled(version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform))
+            // Executes the command to download the version if it doesn't exist
+            if (Pull(new PullOptions()
             {
-                Console.WriteLine($"DarkRift version {version} is not installed. Would you like to install now?");
-                bool ask = true;
-                while (ask)
-                {
-                    char answer = char.ToLower(Console.ReadKey().KeyChar);
-                    if (answer == 'n')
-                        return 0;
-                    else if (answer == 'y')
-                    {
-                        ask = false;
-                        // Executes the command to download the version with the options required
-                        if (Pull(new PullOptions()
-                        {
-                            Version = version,
-                            Tier = opts.Pro,
-                            Platform = opts.Platform,
-                            Force = true
-                        }) != 0)
-                        {
-                            Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required, exiting New"));
-                            return 2;
-                        }
-                    }
-                }
+                Version = version,
+                Pro = opts.Pro,
+                Platform = opts.Platform,
+                Force = false
+            }) != 0)
+            {
+                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required, exiting New"));
+                return 2;
             }
 
             string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
@@ -119,9 +104,20 @@ namespace DarkRift.Cli
                 project.Save();
             }
 
+            // Executes the command to download the version if it doesn't exist
+            if (Pull(new PullOptions()
+            {
+                Version = project.Runtime.Version,
+                Pro = project.Runtime.Tier == ServerTier.Pro,
+                Platform = project.Runtime.Platform,
+                Force = false
+            }) != 0)
+            {
+                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required, exiting New"));
+                return 2;
+            }
+
             string path = VersionManager.GetInstallationPath(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
-            if (path == null)
-                return 1;
 
             // Calculate the executable file to run
             string fullPath;
@@ -205,7 +201,7 @@ namespace DarkRift.Cli
 
                     opts.Version = project.Runtime.Version;
                     opts.Platform = project.Runtime.Platform;
-                    opts.Tier = project.Runtime.Tier == ServerTier.Pro;
+                    opts.Pro = project.Runtime.Tier == ServerTier.Pro;
                 }
                 else
                 {
@@ -214,35 +210,38 @@ namespace DarkRift.Cli
                 }
             }
 
-            ServerTier actualTier = opts.Tier ? ServerTier.Pro : ServerTier.Free;
+            ServerTier actualTier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
 
             // If --docs was specified, download documentation instead
             bool success = false;
             if (opts.Docs)
             {
-                if (!opts.Force)
+                bool docsInstalled = VersionManager.IsDocumentationInstalled(opts.Version);
+
+                if (docsInstalled && !opts.Force)
                 {
-                    if (success = VersionManager.IsDocumentationInstalled(opts.Version))
-                        Console.WriteLine(Output.Green($"Documentation for DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                    Console.WriteLine(Output.Green($"Documentation for DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                    success = true;
                 }
-                if (!success)
+                else
                     success = VersionManager.DownloadDocumentation(opts.Version);
             }
             else if (opts.Version != null)
             {
-                if (!opts.Force)
+                bool versionInstalled = VersionManager.IsVersionInstalled(opts.Version, actualTier, opts.Platform);
+                if (versionInstalled && !opts.Force)
                 {
-                    if (success = VersionManager.IsVersionInstalled(opts.Version, actualTier, opts.Platform))
-                        Console.WriteLine(Output.Green($"DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                    Console.WriteLine(Output.Green($"DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                    success = true;
                 }
-
-                if (!success)
+                else
                     success = VersionManager.DownloadVersion(opts.Version, actualTier, opts.Platform);
             }
 
             if (!success)
             {
-                Console.Error.WriteLine(Output.Red("Invalid command, please run \"darkrift help pull\""));
+                Console.Error.WriteLine(Output.Red("Invalid command"));
+                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + Parser.Default.FormatCommandLine(new PullOptions()));
                 return 1;
             }
 
@@ -275,7 +274,10 @@ namespace DarkRift.Cli
 
             if (opts.Local)
             {
-                BrowserUtil.OpenTo("file://" + VersionManager.GetDocumentationPath(opts.Version) + "/index.html");
+                if (VersionManager.IsDocumentationInstalled(opts.Version))
+                    BrowserUtil.OpenTo("file://" + VersionManager.GetDocumentationPath(opts.Version) + "/index.html");
+                else
+                    Console.Error.WriteLine(Output.Red($"Documentation not installed, consider running \"darkrift pull --docs --version {opts.Version}\""));
             }
             else if (opts.Version != null)
             {

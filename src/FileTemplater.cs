@@ -47,23 +47,23 @@ namespace DarkRift.Cli
         {
             // Keep files containing __k__
             if (text.Contains("__k__"))
-                text = text.Replace("$__k__", "");
+                text = text.Replace("__k__", "");
 
             // Template __n__ to the resource name
             if (text.Contains("__n__"))
-                text = text.Replace("$__n__", resourceName);
+                text = text.Replace("__n__", resourceName);
 
             // Template __v__ to the darkrift version
             if (text.Contains("__v__"))
-                text = text.Replace("$__v__", darkriftVersion.ToString());
+                text = text.Replace("__v__", darkriftVersion.ToString());
 
             // Template __t__ to 'Pro' or 'Free'
             if (text.Contains("__t__"))
-                text = text.Replace("$__t__", tier.ToString());
+                text = text.Replace("__t__", tier.ToString());
 
             // Template __p__ to 'Standard' or 'Framework'
             if (text.Contains("__p__"))
-                text = text.Replace("$__p__", platform.ToString());
+                text = text.Replace("__p__", platform.ToString());
 
             return text;
         }

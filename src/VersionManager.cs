@@ -31,12 +31,16 @@ namespace DarkRift.Cli
         /// <returns>The path to the installation, or null, if it cannot be provided.</returns>
         public static string GetInstallationPath(Version version, ServerTier tier, ServerPlatform platform)
         {
-            if (IsVersionInstalled(version, tier, platform))
-                return Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version.ToString());
-            Console.WriteLine(Output.Green($"DarkRift {version} - {tier} (.NET {platform}) not installed! To download run \"darkrift pull {version}\""));
-            return null;
+            return Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version.ToString());
         }
 
+        /// <summary>
+        /// Downloads and installs a DarkRift version
+        /// </summary>
+        /// <param name="version">The version to be installed</param>
+        /// <param name="tier">The tier</param>
+        /// <param name="platform">The platform</param>
+        /// <returns>True if installed successfully otherwise false</returns>
         public static bool DownloadVersion(Version version, ServerTier tier, ServerPlatform platform)
         {
             string fullPath = Path.Combine(USER_DR_DIR, "installed", tier.ToString().ToLower(), platform.ToString().ToLower(), version.ToString());
@@ -80,19 +84,27 @@ namespace DarkRift.Cli
             return true;
         }
 
+        /// <summary>
+        /// Checks if a version of Dark Rift is installed
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="tier"></param>
+        /// <param name="platform"></param>
+        /// <returns>True if is installed otherwise false</returns>
         public static bool IsVersionInstalled(Version version, ServerTier tier, ServerPlatform platform)
         {
-            Version[] versions = GetVersionDirectories(tier, platform);
+            Version[] versions = GetVersions(tier, platform);
             return Array.Exists(versions, (v) => v == version);
         }
 
+
         /// <summary>
-        /// Gets a list of version with specific tier and platform
+        /// Gets a list of versions with specific tier and platform
         /// </summary>
-        /// <param name="version">The version number required.</param>
-        /// <param name="pro">Whether the pro version should be used.</param>
-        /// <returns>The list of versions or an empty array</returns>
-        public static Version[] GetVersionDirectories(ServerTier tier, ServerPlatform platform)
+        /// <param name="tier">The tier</param>
+        /// <param name="platform">The platform</param>
+        /// <returns></returns>
+        public static Version[] GetVersions(ServerTier tier, ServerPlatform platform)
         {
             try
             {
@@ -103,8 +115,7 @@ namespace DarkRift.Cli
                 // This removes the path and just leaves the version number
                 for (int i = 0; i < paths.Length; i++)
                 {
-                    FileInfo fi = new FileInfo(paths[i]);
-                    versions[i] = new Version(fi.Name);
+                    versions[i] = new Version(Path.GetFileNameWithoutExtension(paths[i]));
                 }
 
                 return versions;
@@ -122,15 +133,15 @@ namespace DarkRift.Cli
         public static void ListInstalledVersions()
         {
             // Since the free version only supports .Net Framework I'm not adding support here
-            Version[] freeVersions = GetVersionDirectories(ServerTier.Free, ServerPlatform.Framework);
+            Version[] freeVersions = GetVersions(ServerTier.Free, ServerPlatform.Framework);
 
-            Version[] proFramework = GetVersionDirectories(ServerTier.Pro, ServerPlatform.Framework);
-            Version[] proCore = GetVersionDirectories(ServerTier.Pro, ServerPlatform.Core);
+            Version[] proFramework = GetVersions(ServerTier.Pro, ServerPlatform.Framework);
+            Version[] proCore = GetVersions(ServerTier.Pro, ServerPlatform.Core);
 
             // Well, you gotta install it, you don't know what you are losing
             if (freeVersions.Length == 0 && proFramework.Length == 0 && proCore.Length == 0)
             {
-                Console.Error.WriteLine(Output.Red($"You don't have any version of DarkRift installed"));
+                Console.Error.WriteLine(Output.Red($"You don't have any versions of DarkRift installed"));
                 return;
             }
 
@@ -153,20 +164,14 @@ namespace DarkRift.Cli
             string output = "";
 
             // There's no free or pro in documentation
-            string documentation = string.Empty;
-            try
-            {
-                documentation = Directory.GetDirectories(Path.Combine(USER_DR_DIR, "documentation", version.ToString()))[0];
-            }
-            catch { }
 
-            output += Output.Green($"{tier} {platform} version {version}");
+            output += $"DarkRift {version} - {tier} ({platform})";
 
-            if (documentation.Length > 0)
-                output += Output.Green($" and it's documentation are");
-            else output += Output.Green($" is");
+            if (Directory.Exists(Path.Combine(USER_DR_DIR, "documentation", version.ToString())))
+                output += " and it's documentation are";
+            else output += " is";
 
-            output += Output.Green($" installed");
+            output += " installed";
 
             Console.WriteLine(output);
         }
@@ -249,7 +254,7 @@ namespace DarkRift.Cli
         }
 
         /// <summary>
-        /// Gets the path to a specified documentation installation, downloading it if required.
+        /// Gets the path to a specified documentation installation
         /// </summary>
         /// <param name="version">The version number required.</param>
         /// <returns>The path to the documentation, or null, if it cannot be provided.</returns>
@@ -258,6 +263,11 @@ namespace DarkRift.Cli
             return Path.Combine(USER_DR_DIR, "documentation", version.ToString());
         }
 
+        /// <summary>
+        /// Downloads and installs the documentation of a version of Dark Rift
+        /// </summary>
+        /// <param name="version">The version of Dark Rift</param>
+        /// <returns>True for success otherwise false</returns>
         public static bool DownloadDocumentation(Version version)
         {
             string fullPath = GetDocumentationPath(version);
@@ -289,6 +299,11 @@ namespace DarkRift.Cli
             return true;
         }
 
+        /// <summary>
+        /// Checks if documentation for a specific version exists
+        /// </summary>
+        /// <param name="version">Version of Dark Rift</param>
+        /// <returns>True if documentation found otherwise false</returns>
         public static bool IsDocumentationInstalled(Version version)
         {
             return Directory.Exists(GetDocumentationPath(version));

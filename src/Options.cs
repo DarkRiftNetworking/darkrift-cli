@@ -48,7 +48,7 @@ namespace DarkRift.Cli
         public Version Version { get; set; }
 
         [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
-        public bool Tier { get; set; }
+        public bool Pro { get; set; }
 
         [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Use the .NET platform of the server to use.")]
         public ServerPlatform Platform { get; set; }
