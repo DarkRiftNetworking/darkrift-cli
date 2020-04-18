@@ -93,8 +93,7 @@ namespace DarkRift.Cli
         /// <returns>True if is installed otherwise false</returns>
         public static bool IsVersionInstalled(Version version, ServerTier tier, ServerPlatform platform)
         {
-            Version[] versions = GetVersions(tier, platform);
-            return Array.Exists(versions, (v) => v == version);
+            return GetVersions(tier, platform).Contains(version);
         }
 
 
@@ -104,25 +103,25 @@ namespace DarkRift.Cli
         /// <param name="tier">The tier</param>
         /// <param name="platform">The platform</param>
         /// <returns></returns>
-        public static Version[] GetVersions(ServerTier tier, ServerPlatform platform)
+        public static List<Version> GetVersions(ServerTier tier, ServerPlatform platform)
         {
             try
             {
                 string[] paths = Directory.GetDirectories(Path.Combine(USER_DR_DIR, "installed", $"{tier.ToString().ToLower()}", $"{platform.ToString().ToLower()}"));
 
-                Version[] versions = new Version[paths.Length];
+                List<Version> versions = new List<Version>();
 
                 // This removes the path and just leaves the version number
                 for (int i = 0; i < paths.Length; i++)
                 {
-                    versions[i] = new Version(Path.GetFileNameWithoutExtension(paths[i]));
+                    versions.Add(new Version(Path.GetFileNameWithoutExtension(paths[i])));
                 }
 
                 return versions;
             }
             catch
             {
-                return new Version[0];
+                return new List<Version>();
             };
         }
 
@@ -133,13 +132,13 @@ namespace DarkRift.Cli
         public static void ListInstalledVersions()
         {
             // Since the free version only supports .Net Framework I'm not adding support here
-            Version[] freeVersions = GetVersions(ServerTier.Free, ServerPlatform.Framework);
+            List<Version> freeVersions = GetVersions(ServerTier.Free, ServerPlatform.Framework);
 
-            Version[] proFramework = GetVersions(ServerTier.Pro, ServerPlatform.Framework);
-            Version[] proCore = GetVersions(ServerTier.Pro, ServerPlatform.Core);
+            List<Version> proFramework = GetVersions(ServerTier.Pro, ServerPlatform.Framework);
+            List<Version> proCore = GetVersions(ServerTier.Pro, ServerPlatform.Core);
 
             // Well, you gotta install it, you don't know what you are losing
-            if (freeVersions.Length == 0 && proFramework.Length == 0 && proCore.Length == 0)
+            if (freeVersions.Count == 0 && proFramework.Count == 0 && proCore.Count == 0)
             {
                 Console.Error.WriteLine(Output.Red($"You don't have any versions of DarkRift installed"));
                 return;
