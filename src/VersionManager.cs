@@ -114,7 +114,7 @@ namespace DarkRift.Cli
                 // This removes the path and just leaves the version number
                 for (int i = 0; i < paths.Length; i++)
                 {
-                    versions.Add(new Version(Path.GetFileNameWithoutExtension(paths[i])));
+                    versions.Add(new Version(Path.GetFileName(paths[i])));
                 }
 
                 return versions;
