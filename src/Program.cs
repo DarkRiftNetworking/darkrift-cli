@@ -58,8 +58,8 @@ namespace DarkRift.Cli
                 Force = false
             }) != 0)
             {
-                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required, exiting New"));
-                return 2;
+                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required"));
+                return 1;
             }
 
             string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
@@ -105,6 +105,7 @@ namespace DarkRift.Cli
             }
 
             // Executes the command to download the version if it doesn't exist
+
             if (Pull(new PullOptions()
             {
                 Version = project.Runtime.Version,
@@ -113,8 +114,8 @@ namespace DarkRift.Cli
                 Force = false
             }) != 0)
             {
-                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required, exiting New"));
-                return 2;
+                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required"));
+                return 1;
             }
 
             string path = VersionManager.GetInstallationPath(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
@@ -226,7 +227,7 @@ namespace DarkRift.Cli
                 else
                     success = VersionManager.DownloadDocumentation(opts.Version);
             }
-            else if (opts.Version != null)
+            else
             {
                 bool versionInstalled = VersionManager.IsVersionInstalled(opts.Version, actualTier, opts.Platform);
                 if (versionInstalled && !opts.Force)

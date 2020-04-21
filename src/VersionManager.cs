@@ -87,9 +87,9 @@ namespace DarkRift.Cli
         /// <summary>
         /// Checks if a version of Dark Rift is installed
         /// </summary>
-        /// <param name="version"></param>
-        /// <param name="tier"></param>
-        /// <param name="platform"></param>
+        /// <param name="version">Version to be checked</param>
+        /// <param name="tier">The tier</param>
+        /// <param name="platform">The platform</param>
         /// <returns>True if is installed otherwise false</returns>
         public static bool IsVersionInstalled(string version, ServerTier tier, ServerPlatform platform)
         {
@@ -155,7 +155,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// Prints version information on the console
         /// </summary>
-        /// <param name="version">The version number required.</param>
+        /// <param name="version">The version to be printed.</param>
         /// <param name="pro">Whether the pro version should be used.</param>
         /// <param name="platform">Whether the .NET Standard build should be used.</param>
         private static void PrintVersion(string version, ServerTier tier, ServerPlatform platform)
@@ -164,10 +164,10 @@ namespace DarkRift.Cli
 
             // There's no free or pro in documentation
 
-            output += $"DarkRift {version} - {tier} ({platform})";
+            output += $"DarkRift {version} - {tier} (.NET {platform})";
 
             if (Directory.Exists(Path.Combine(USER_DR_DIR, "documentation", version)))
-                output += " and it's documentation are";
+                output += " and its documentation are";
             else output += " is";
 
             output += " installed";
@@ -263,9 +263,9 @@ namespace DarkRift.Cli
         }
 
         /// <summary>
-        /// Downloads and installs the documentation of a version of Dark Rift
+        /// Downloads and installs the documentation of a version of DarkRift
         /// </summary>
-        /// <param name="version">The version of Dark Rift</param>
+        /// <param name="version">The version of DarkRift</param>
         /// <returns>True for success otherwise false</returns>
         public static bool DownloadDocumentation(string version)
         {
