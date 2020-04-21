@@ -97,8 +97,8 @@ namespace DarkRift.Cli
             }
 
             // Executes the command to download the version if it doesn't exist
-            if (!VersionManager.IsVersionInstalled(version, tier, opts.Platform))
-                VersionManager.DownloadVersion(version, tier, opts.Platform);
+            if (!VersionManager.IsVersionInstalled(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform))
+                VersionManager.DownloadVersion(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
 
             string path = VersionManager.GetInstallationPath(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
 
