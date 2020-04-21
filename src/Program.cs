@@ -48,19 +48,11 @@ namespace DarkRift.Cli
         private static int New(NewOptions opts)
         {
             string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
+            var tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
 
             // Executes the command to download the version if it doesn't exist
-            if (Pull(new PullOptions()
-            {
-                Version = version,
-                Pro = opts.Pro,
-                Platform = opts.Platform,
-                Force = false
-            }) != 0)
-            {
-                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required"));
-                return 1;
-            }
+            if (!VersionManager.IsVersionInstalled(version, tier, opts.Platform))
+                VersionManager.DownloadVersion(version, tier, opts.Platform);
 
             string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
             string templatePath = Path.Combine(TEMPLATES_PATH, opts.Type + ".zip");
@@ -105,18 +97,8 @@ namespace DarkRift.Cli
             }
 
             // Executes the command to download the version if it doesn't exist
-
-            if (Pull(new PullOptions()
-            {
-                Version = project.Runtime.Version,
-                Pro = project.Runtime.Tier == ServerTier.Pro,
-                Platform = project.Runtime.Platform,
-                Force = false
-            }) != 0)
-            {
-                Console.Error.WriteLine(Output.Red("An error occured while trying to download the version required"));
-                return 1;
-            }
+            if (!VersionManager.IsVersionInstalled(version, tier, opts.Platform))
+                VersionManager.DownloadVersion(version, tier, opts.Platform);
 
             string path = VersionManager.GetInstallationPath(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
 
