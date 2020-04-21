@@ -15,7 +15,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// The latest stable server version available.
         /// </summary>
-        public Version Latest => new Version(latest);
+        public string Latest => latest;
 
 #pragma warning disable CS0649
         /// <summary>

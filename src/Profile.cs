@@ -30,7 +30,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// The latest version we know of for DarkRift.
         /// </summary>
-        public Version LatestKnownDarkRiftVersion { get; set; }
+        public string LatestKnownDarkRiftVersion { get; set; }
 
         /// <summary>
         /// Load's the user's profile from disk.

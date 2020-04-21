@@ -47,7 +47,7 @@ namespace DarkRift.Cli
 
         private static int New(NewOptions opts)
         {
-            Version version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
+            string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
 
             // Executes the command to download the version if it doesn't exist
             if (Pull(new PullOptions()

@@ -18,7 +18,7 @@ namespace DarkRift.Cli
         public string TargetDirectory { get; set; }
 
         [Option("version", HelpText = "Specify the DarkRift version to use.")]
-        public Version Version { get; set; }
+        public string Version { get; set; }
 
         [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
         public bool Pro { get; set; }
@@ -44,8 +44,8 @@ namespace DarkRift.Cli
     [Verb("pull", HelpText = "Pulls the specified version of DarkRift locally.")]
     public class PullOptions
     {
-        [Value(0, Required = false)]
-        public Version Version { get; set; }
+        [Value(0, Required = false, HelpText = "The version of DarkRift")]
+        public string Version { get; set; }
 
         [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
         public bool Pro { get; set; }
@@ -69,8 +69,8 @@ namespace DarkRift.Cli
     [Verb("docs", HelpText = "Opens the documentation for DarkRift.")]
     public class DocsOptions
     {
-        [Value(0, Required = false)]
-        public Version Version { get; set; }
+        [Value(0, Required = false, HelpText = "The version of DarkRift")]
+        public string Version { get; set; }
 
         [Option('l', "local", Default = false, HelpText = "Opens a local copy of the documentation.")]
         public bool Local { get; set; }
