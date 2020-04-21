@@ -1,13 +1,27 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace DarkRift.Cli
 {
     /// <summary>
     ///     Handles templating of generated files.
     /// </summary>
-    internal class FileTemplater
+    internal static class FileTemplater
     {
+        public static string RemoveSpecialCharacters(this string str)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in str)
+            {
+                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+
         /// <summary>
         ///     Template the given path file's path and content.
         /// </summary>
@@ -18,6 +32,8 @@ namespace DarkRift.Cli
         /// <param name="platform">The platform the DarkRift being used was built for.</param>
         public static void TemplateFileAndPath(string filePath, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
         {
+            resourceName = resourceName.RemoveSpecialCharacters();
+
             string resolvedPath = TemplateString(filePath, resourceName, darkriftVersion, tier, platform);
 
             // Template the content of files containing __c__
