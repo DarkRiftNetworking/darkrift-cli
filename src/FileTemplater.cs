@@ -9,17 +9,46 @@ namespace DarkRift.Cli
     /// </summary>
     internal static class FileTemplater
     {
-        public static string RemoveSpecialCharacters(this string str)
+        /// <summary>
+        /// Normalizes a string according to issue #25
+        /// my-plugin -> MyPlugin | My amazing plugin -> MyAmazingPlugin
+        /// </summary>
+        /// <param name="str">String to be normalized</param>
+        /// <returns>Normalized string</returns>
+        internal static string Normalize(string str)
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (char c in str)
+            string returnString = "";
+
+            bool alreadyUpperCase = false;
+            for (var i = 0; i < str.Length; i++)
             {
-                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_')
+                if (!IsSpecialChar(str[i]))
                 {
-                    sb.Append(c);
+                    if (alreadyUpperCase)
+                        returnString += char.ToLower(str[i]);
+                    else
+                    {
+                        returnString += char.ToUpper(str[i]);
+                        alreadyUpperCase = true;
+                    }
+                }
+                else
+                {
+                    alreadyUpperCase = false;
                 }
             }
-            return sb.ToString();
+
+            return returnString;
+        }
+
+        /// <summary>
+        /// Checks if a character is not a letter or an underscore (we should allow underscores)
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        internal static bool IsSpecialChar(char c)
+        {
+            return !(char.IsLetter(c) || c == '_');
         }
 
         /// <summary>
@@ -32,7 +61,7 @@ namespace DarkRift.Cli
         /// <param name="platform">The platform the DarkRift being used was built for.</param>
         public static void TemplateFileAndPath(string filePath, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
         {
-            resourceName = resourceName.RemoveSpecialCharacters();
+            resourceName = Normalize(resourceName);
 
             string resolvedPath = TemplateString(filePath, resourceName, darkriftVersion, tier, platform);
 
