@@ -170,7 +170,7 @@ namespace DarkRift.Cli
             }
 
             // if version provided is "latest", it is being replaced with currently most recent one
-            if (opts.Latest)
+            if (opts.Version == "latest")
             {
                 opts.Version = VersionManager.GetLatestDarkRiftVersion();
             }

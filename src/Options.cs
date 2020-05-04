@@ -61,9 +61,6 @@ namespace DarkRift.Cli
 
         [Option('f', "force", Default = false, HelpText = "Forces downloading of a DarkRift version or documentation")]
         public bool Force { get; set; }
-
-        [Option("latest", Default = false, HelpText = "Specifies latest version")]
-        public bool Latest { get; set; }
     }
 
     [Verb("docs", HelpText = "Opens the documentation for DarkRift.")]
