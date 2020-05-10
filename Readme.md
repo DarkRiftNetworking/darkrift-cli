@@ -53,9 +53,14 @@ To pull a version of DarkRift from the remote server for use locally you can use
 ```bash
 darkrift pull 2.4.5
 ```
-This version of DarkRift is than available for use in your projects when starting a server with `darkrift run`. Specifying without a version number will use your current project's version and specifying latest will get the latest version of DarkRift.
+This version of DarkRift is than available for use in your projects when starting a server with `darkrift run`. Specifying without a version number will use your current project's version and specifying latest will get the latest version of DarkRift. You can also specify -f to force a download
 
 In most cases you do not need to do this yourself as `darkrift run` will automatically download the correct version.
+
+You can also list all the DarkRift version you have installed with:
+```bash
+darkrift pull --list
+```
 
 ## Docs
 To access the DarkRift documentation you can simply use:

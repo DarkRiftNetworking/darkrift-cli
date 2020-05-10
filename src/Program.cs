@@ -20,68 +20,6 @@ namespace DarkRift.Cli
         /// <summary>
         private static readonly string TEMPLATES_PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates");
 
-        [Verb("new", HelpText = "Create a new DarkRift project.")]
-        private class NewOptions
-        {
-            [Option('f', Default = false, HelpText = "Force creation overwriting any files that already exist in the directory.")]
-            public bool Force { get; set; }
-
-            [Value(0, HelpText = "The name of the template to unpack.", Required = true)]
-            public string Type { get; set; }
-
-            [Value(1, HelpText = "The directory to unpack the template in.")]
-            public string TargetDirectory { get; set; }
-
-            [Option("version", HelpText = "Specify the DarkRift version to use.")]
-            public string Version { get; set; }
-
-            [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
-            public bool Pro { get; set; }
-
-            [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Specify the .NET platform of the server to use.")]
-            public ServerPlatform Platform { get; set; }
-        }
-
-        [Verb("run", HelpText = "Run a DarkRift project.")]
-        private class RunOptions
-        {
-            [Value(0)]
-            public IEnumerable<string> Values { get; set; }
-        }
-
-        [Verb("get", HelpText = "Downloads a plugin package into this server.")]
-        private class GetOptions
-        {
-            [Value(0, Required = true)]
-            public string Url { get; set; }
-        }
-
-        [Verb("pull", HelpText = "Pulls the specified version of DarkRift locally.")]
-        private class PullOptions
-        {
-            [Value(0, Required = false)]
-            public string Version { get; set; }
-
-            [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
-            public bool Tier { get; set; }
-
-            [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Use the .NET platform of the server to use.")]
-            public ServerPlatform Platform { get; set; }
-
-            [Option('d', "docs", Default = false, HelpText = "Download the documentation for this version instead.")]
-            public bool Docs { get; set; }
-        }
-
-        [Verb("docs", HelpText = "Opens the documentation for DarkRift.")]
-        private class DocsOptions
-        {
-            [Value(0, Required = false)]
-            public string Version { get; set; }
-
-            [Option('l', "local", Default = false, HelpText = "Opens a local copy of the documentation.")]
-            public bool Local { get; set; }
-        }
-
         public static int Main(string[] args)
         {
             return new Parser(SetupParser).ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
@@ -109,6 +47,13 @@ namespace DarkRift.Cli
 
         private static int New(NewOptions opts)
         {
+            string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
+            var tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
+
+            // Executes the command to download the version if it doesn't exist
+            if (!VersionManager.IsVersionInstalled(version, tier, opts.Platform))
+                VersionManager.DownloadVersion(version, tier, opts.Platform);
+
             string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
             string templatePath = Path.Combine(TEMPLATES_PATH, opts.Type + ".zip");
 
@@ -117,7 +62,7 @@ namespace DarkRift.Cli
             if (Directory.GetFiles(targetDirectory).Length > 0 && !opts.Force)
             {
                 Console.Error.WriteLine(Output.Red("Cannot create from template, the directory is not empty. Use -f to force creation."));
-                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + CommandLine.Parser.Default.FormatCommandLine(new NewOptions { Type = opts.Type, TargetDirectory = opts.TargetDirectory, Force = true }));
+                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + Parser.Default.FormatCommandLine(new NewOptions { Type = opts.Type, TargetDirectory = opts.TargetDirectory, Force = true }));
                 return 1;
             }
 
@@ -133,15 +78,10 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Cleaning up extracted artifacts...");
 
-            string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
-
             foreach (string path in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
                 FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             Console.WriteLine(Output.Green($"Created '{Path.GetFileName(targetDirectory)}'"));
-
-            // Make sure that the given DarkRift version is actually downloaded.
-            VersionManager.GetInstallationPath(version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform);
 
             return 0;
         }
@@ -156,9 +96,11 @@ namespace DarkRift.Cli
                 project.Save();
             }
 
+            // Executes the command to download the version if it doesn't exist
+            if (!VersionManager.IsVersionInstalled(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform))
+                VersionManager.DownloadVersion(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
+
             string path = VersionManager.GetInstallationPath(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
-            if (path == null)
-                return 1;
 
             // Calculate the executable file to run
             string fullPath;
@@ -220,22 +162,11 @@ namespace DarkRift.Cli
 
         private static int Pull(PullOptions opts)
         {
-            if (string.IsNullOrEmpty(opts.Version))
+            // If --list was specified, list installed versions and tell if documentation for that version is available locally
+            if (opts.List)
             {
-                // if version info was omitted, overwrite any parameters with current project settings
-                if (Project.IsCurrentDirectoryAProject())
-                {
-                    var project = Project.Load();
-
-                    opts.Version = project.Runtime.Version;
-                    opts.Platform = project.Runtime.Platform;
-                    opts.Tier = project.Runtime.Tier == ServerTier.Pro;
-                }
-                else
-                {
-                    Console.Error.WriteLine(Output.Red($"You can perform this command only in a project directory."));
-                    return 2;
-                }
+                VersionManager.ListInstalledVersions();
+                return 0;
             }
 
             // if version provided is "latest", it is being replaced with currently most recent one
@@ -244,26 +175,71 @@ namespace DarkRift.Cli
                 opts.Version = VersionManager.GetLatestDarkRiftVersion();
             }
 
+            if (opts.Version == null)
+            {
+                // if version info was omitted, overwrite any parameters with current project settings
+                if (Project.IsCurrentDirectoryAProject())
+                {
+                    var project = Project.Load();
+
+                    opts.Version = project.Runtime.Version;
+                    opts.Platform = project.Runtime.Platform;
+                    opts.Pro = project.Runtime.Tier == ServerTier.Pro;
+                }
+                else
+                {
+                    Console.Error.WriteLine(Output.Red($"Couldn't find a version to install. To download latest version use option --latest"));
+                    return 2;
+                }
+            }
+
+            ServerTier actualTier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
+
             // If --docs was specified, download documentation instead
-            string path;
+            bool success = false;
             if (opts.Docs)
             {
-                path = VersionManager.GetDocumentationPath(opts.Version);
+                bool docsInstalled = VersionManager.IsDocumentationInstalled(opts.Version);
+
+                if (docsInstalled && !opts.Force)
+                {
+                    Console.WriteLine(Output.Green($"Documentation for DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                    success = true;
+                }
+                else
+                    success = VersionManager.DownloadDocumentation(opts.Version);
             }
             else
             {
-                path = VersionManager.GetInstallationPath(opts.Version, opts.Tier ? ServerTier.Pro : ServerTier.Free, opts.Platform);
+                bool versionInstalled = VersionManager.IsVersionInstalled(opts.Version, actualTier, opts.Platform);
+                if (versionInstalled && !opts.Force)
+                {
+                    Console.WriteLine(Output.Green($"DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
+                    success = true;
+                }
+                else
+                    success = VersionManager.DownloadVersion(opts.Version, actualTier, opts.Platform);
             }
 
-            if (path == null)
+            if (!success)
+            {
+                Console.Error.WriteLine(Output.Red("Invalid command"));
+                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + Parser.Default.FormatCommandLine(new PullOptions()));
                 return 1;
+            }
 
             return 0;
         }
 
         private static int Docs(DocsOptions opts)
         {
-            if (string.IsNullOrEmpty(opts.Version))
+            // If version provided is "latest", it is being replaced with currently most recent one
+            if (opts.Latest)
+            {
+                opts.Version = VersionManager.GetLatestDarkRiftVersion();
+            }
+
+            if (opts.Version == null)
             {
                 // If version info was omitted, overwrite any parameters with current project settings
                 if (Project.IsCurrentDirectoryAProject())
@@ -274,22 +250,19 @@ namespace DarkRift.Cli
                 }
                 else
                 {
-                    Console.Error.WriteLine(Output.Red($"You can perform this command only in a project directory."));
+                    Console.Error.WriteLine(Output.Red($"Couldn't find a version to download documentation. To download latest version use option --latest"));
                     return 2;
                 }
             }
 
-            // If version provided is "latest", it is being replaced with currently most recent one
-            if (opts.Version == "latest")
-            {
-                opts.Version = VersionManager.GetLatestDarkRiftVersion();
-            }
-
             if (opts.Local)
             {
-                BrowserUtil.OpenTo("file://" + VersionManager.GetDocumentationPath(opts.Version) + "/index.html");
+                if (VersionManager.IsDocumentationInstalled(opts.Version))
+                    BrowserUtil.OpenTo("file://" + VersionManager.GetDocumentationPath(opts.Version) + "/index.html");
+                else
+                    Console.Error.WriteLine(Output.Red($"Documentation not installed, consider running \"darkrift pull --docs --version {opts.Version}\""));
             }
-            else
+            else if (opts.Version != null)
             {
                 BrowserUtil.OpenTo($"https://darkriftnetworking.com/DarkRift2/Docs/{opts.Version}");
             }

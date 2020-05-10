@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net4.5</TargetFramework>
-    <RootNamespace>$__n__</RootNamespace>
+    <RootNamespace>__n__</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="$(UserProfile)/.darkrift/installed/Free/Framework/2.3.1/Lib/DarkRift.dll" />
-    <Reference Include="$(UserProfile)/.darkrift/installed/Free/Framework/2.3.1/Lib/DarkRift.Server.dll" />
+    <Reference Include="$(UserProfile)/.darkrift/installed/__t__/__p__/__v__/Lib/DarkRift.dll" />
+    <Reference Include="$(UserProfile)/.darkrift/installed/__t__/__p__/__v__/Lib/DarkRift.Server.dll" />
   </ItemGroup>
 </Project>
