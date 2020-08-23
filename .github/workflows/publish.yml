@@ -19,3 +19,8 @@ jobs:
       run: dotnet test tests/
     - name: Publish
       run: dotnet publish --configuration Release src/
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: darkrift-cli
+        path: ./src/bin/Release/netcoreapp3.1/publish/
