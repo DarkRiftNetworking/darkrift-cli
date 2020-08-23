@@ -31,11 +31,9 @@ namespace DarkRift.Cli
         /// <returns>The version metadata.</returns>
         public static VersionMetadata Parse(string jsonString)
         {
-            using (MemoryStream stream = new MemoryStream(Encoding.Unicode.GetBytes(jsonString)))
-            {
-                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(VersionMetadata));
-                return (VersionMetadata)serializer.ReadObject(stream);
-            }
+            using MemoryStream stream = new MemoryStream(Encoding.Unicode.GetBytes(jsonString));
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(VersionMetadata));
+            return (VersionMetadata)serializer.ReadObject(stream);
         }
     }
 }

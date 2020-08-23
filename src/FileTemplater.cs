@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Runtime.Serialization.Json;
+using System;
 using System.IO;
 using System.Text;
 
@@ -20,21 +21,25 @@ namespace DarkRift.Cli
             string returnString = "";
 
             bool alreadyUpperCase = false;
-            for (var i = 0; i < str.Length; i++)
+            for (int i = 0; i < str.Length; i++)
             {
-                if (!IsSpecialChar(str[i]))
+                if (IsSpecialChar(str[i]))
                 {
-                    if (alreadyUpperCase)
-                        returnString += char.ToLower(str[i]);
-                    else
-                    {
-                        returnString += char.ToUpper(str[i]);
-                        alreadyUpperCase = true;
-                    }
+                    alreadyUpperCase = false;
+                }
+                else if (char.IsNumber(str[i]))
+                {
+                    returnString += str[i];
+                    alreadyUpperCase = false;
+                }
+                else if (alreadyUpperCase)
+                {
+                    returnString += char.ToLower(str[i]);
                 }
                 else
                 {
-                    alreadyUpperCase = false;
+                    returnString += char.ToUpper(str[i]);
+                    alreadyUpperCase = true;
                 }
             }
 
@@ -44,11 +49,11 @@ namespace DarkRift.Cli
         /// <summary>
         /// Checks if a character is not a letter or an underscore (we should allow underscores)
         /// </summary>
-        /// <param name="c"></param>
-        /// <returns></returns>
+        /// <param name="c">The character to test.</param>
+        /// <returns>true, if the character is a special character; false, otherwise.</returns>
         internal static bool IsSpecialChar(char c)
         {
-            return !(char.IsLetter(c) || c == '_');
+            return !(char.IsLetterOrDigit(c) || c == '_');
         }
 
         /// <summary>

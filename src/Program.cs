@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Reflection.Metadata;
 using System.Reflection;
 using System.Linq;
@@ -10,6 +11,9 @@ using System.Net;
 using CommandLine;
 using Crayon;
 using System.Collections.Generic;
+
+[assembly:InternalsVisibleTo("darkrift-cli-test")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace DarkRift.Cli
 {
@@ -48,7 +52,7 @@ namespace DarkRift.Cli
         private static int New(NewOptions opts)
         {
             string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
-            var tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
+            ServerTier tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
 
             // Executes the command to download the version if it doesn't exist
             if (!VersionManager.IsVersionInstalled(version, tier, opts.Platform))
@@ -116,15 +120,15 @@ namespace DarkRift.Cli
                 args = opts.Values.Prepend(Path.Combine(path, "Lib", "DarkRift.Server.Console.dll"));
             }
 
-            using (Process process = new Process())
+            using Process process = new Process
             {
-                process.StartInfo = new ProcessStartInfo(fullPath, string.Join(" ", args));
-                process.Start();
+                StartInfo = new ProcessStartInfo(fullPath, string.Join(" ", args))
+            };
+            process.Start();
 
-                process.WaitForExit();
+            process.WaitForExit();
 
-                return process.ExitCode;
-            }
+            return process.ExitCode;
         }
 
         private static int Get(GetOptions opts)
@@ -180,7 +184,7 @@ namespace DarkRift.Cli
                 // if version info was omitted, overwrite any parameters with current project settings
                 if (Project.IsCurrentDirectoryAProject())
                 {
-                    var project = Project.Load();
+                    Project project = Project.Load();
 
                     opts.Version = project.Runtime.Version;
                     opts.Platform = project.Runtime.Platform;
@@ -244,7 +248,7 @@ namespace DarkRift.Cli
                 // If version info was omitted, overwrite any parameters with current project settings
                 if (Project.IsCurrentDirectoryAProject())
                 {
-                    var project = Project.Load();
+                    Project project = Project.Load();
 
                     opts.Version = project.Runtime.Version;
                 }

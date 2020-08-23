@@ -41,11 +41,9 @@ namespace DarkRift.Cli
             if (instance == null)
             {
                 try {
-                    using (XmlReader reader = XmlReader.Create(Path.Combine(USER_DR_DIR, "profile.xml")))
-                    {
-                        XmlSerializer ser = new XmlSerializer(typeof(Profile));
-                        instance = (Profile)ser.Deserialize(reader);
-                    }
+                    using XmlReader reader = XmlReader.Create(Path.Combine(USER_DR_DIR, "profile.xml"));
+                    XmlSerializer ser = new XmlSerializer(typeof(Profile));
+                    instance = (Profile)ser.Deserialize(reader);
                 }
                 catch (IOException)
                 {
@@ -62,11 +60,9 @@ namespace DarkRift.Cli
         public void Save()
         {
             Directory.CreateDirectory(USER_DR_DIR);
-            using (XmlWriter writer = XmlWriter.Create(Path.Combine(USER_DR_DIR, "profile.xml"), new XmlWriterSettings { Indent = true }))
-            {
-                XmlSerializer ser = new XmlSerializer(typeof(Profile));
-                ser.Serialize(writer, this);
-            }
+            using XmlWriter writer = XmlWriter.Create(Path.Combine(USER_DR_DIR, "profile.xml"), new XmlWriterSettings { Indent = true });
+            XmlSerializer ser = new XmlSerializer(typeof(Profile));
+            ser.Serialize(writer, this);
         }
     }
 }
