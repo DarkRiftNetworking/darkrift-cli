@@ -13,12 +13,12 @@ using Crayon;
 using System.Collections.Generic;
 using DarkRift.Cli.Templating;
 
-[assembly:InternalsVisibleTo("darkrift-cli-test")]
-[assembly:InternalsVisibleTo("DynamicProxyGenAssembly2")]
+[assembly: InternalsVisibleTo("darkrift-cli-test")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace DarkRift.Cli
 {
-    internal static class Program
+    internal class Program
     {
         /// <summary>
         /// The location of the template archives.
@@ -30,15 +30,44 @@ namespace DarkRift.Cli
         /// </summary>
         private static readonly string USER_DR_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".darkrift");
 
+        /// <summary>
+        /// The installation manager to use.
+        /// </summary>
+        private readonly InstallationManager installationManager;
+
+        /// <summary>
+        /// The documentation manager to use.
+        /// </summary>
+        private readonly DocumentationManager documentationManager;
+
+        /// <summary>
+        /// The templater to use.
+        /// </summary>
+        private readonly Templater templater;
+
+        public Program(InstallationManager installationManager, DocumentationManager documentationManager, Templater templater)
+        {
+            this.documentationManager = documentationManager;
+            this.templater = templater;
+            this.installationManager = installationManager;
+        }
+
         public static int Main(string[] args)
         {
+            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
+            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
+            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
+            Templater templater = new Templater(TEMPLATES_PATH);
+
+            Program program = new Program(installationManager, documentationManager, templater);
+
             return new Parser(SetupParser).ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
                 .MapResult(
-                    (NewOptions opts) => New(opts),
-                    (RunOptions opts) => Run(opts),
-                    (GetOptions opts) => Get(opts),
-                    (PullOptions opts) => Pull(opts),
-                    (DocsOptions opts) => Docs(opts),
+                    (NewOptions opts) => program.New(opts),
+                    (RunOptions opts) => program.Run(opts),
+                    (GetOptions opts) => program.Get(opts),
+                    (PullOptions opts) => program.Pull(opts),
+                    (DocsOptions opts) => program.Docs(opts),
                     _ => 1);
         }
 
@@ -55,17 +84,14 @@ namespace DarkRift.Cli
             settings.EnableDashDash = true;
         }
 
-        private static int New(NewOptions opts)
+        private int New(NewOptions opts)
         {
-            InstallationManager installationManager = new InstallationManager(new RemoteRepository(new InvoiceManager()), Path.Combine(USER_DR_DIR, "installed"));
-
             string version = opts.Version ?? installationManager.GetLatestDarkRiftVersion();
             ServerTier tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
             string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
 
             installationManager.Install(version, tier, opts.Platform, false);
 
-            Templater templater = new Templater(TEMPLATES_PATH);
             try
             {
                 templater.Template(opts.Type, targetDirectory, version, tier, opts.Platform, opts.Force);
@@ -85,10 +111,8 @@ namespace DarkRift.Cli
             return 0;
         }
 
-        private static int Run(RunOptions opts)
+        private int Run(RunOptions opts)
         {
-            InstallationManager installationManager = new InstallationManager(new RemoteRepository(new InvoiceManager()), Path.Combine(USER_DR_DIR, "installed"));
-
             Project project = Project.Load();
 
             if (project.Runtime == null)
@@ -107,7 +131,7 @@ namespace DarkRift.Cli
             return installation.Run(opts.Values);
         }
 
-        private static int Get(GetOptions opts)
+        private int Get(GetOptions opts)
         {
             if (!Uri.TryCreate(opts.Url, UriKind.RelativeOrAbsolute, out Uri uri))
             {
@@ -140,7 +164,7 @@ namespace DarkRift.Cli
             return 0;
         }
 
-        private static int Pull(PullOptions opts)
+        private int Pull(PullOptions opts)
         {
             // If --list was specified, list installed versions and tell if documentation for that version is available locally
             if (opts.List)
@@ -148,10 +172,6 @@ namespace DarkRift.Cli
                 PrintInstalledVersions();
                 return 0;
             }
-
-            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
-            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
-            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
 
             string version;
             ServerTier tier;
@@ -217,12 +237,8 @@ namespace DarkRift.Cli
             return 0;
         }
 
-        private static int Docs(DocsOptions opts)
+        private int Docs(DocsOptions opts)
         {
-            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
-            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
-            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
-
             // If version provided is "latest", it is being replaced with currently most recent one
             if (opts.Version == "latest")
             {
@@ -264,12 +280,8 @@ namespace DarkRift.Cli
         /// <summary>
         /// Lists installed DarkRift versions on the console along with the documentation
         /// </summary>
-        public static void PrintInstalledVersions()
+        public void PrintInstalledVersions()
         {
-            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
-            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
-            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
-
             // Since the free version only supports .Net Framework I'm not adding support here
             List<DarkRiftInstallation> freeInstallations = installationManager.GetVersions(ServerTier.Free, ServerPlatform.Framework);
 
@@ -295,7 +307,7 @@ namespace DarkRift.Cli
         /// </summary>
         /// <param name="installation">The installation to be printed.</param>
         /// <param name="isDocumentationInstalled">Whether the respective documentation for this version is installed.</param>
-        private static void PrintVersion(DarkRiftInstallation installation, bool isDocumentationInstalled)
+        private void PrintVersion(DarkRiftInstallation installation, bool isDocumentationInstalled)
         {
             string output = "";
 
