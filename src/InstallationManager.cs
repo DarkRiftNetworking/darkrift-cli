@@ -29,14 +29,21 @@ namespace DarkRift.Cli
         private readonly string installationDirectory;
 
         /// <summary>
+        /// The application's context.
+        /// </summary>
+        private readonly Context context;
+
+        /// <summary>
         /// Creates a new installation manager.
         /// </summary>
         /// <param name="remoteRepository">The remote respository to download versions from.</param>
         /// <param name="installationDirectory">The directory to place DR installations in.</param>
-        public InstallationManager(RemoteRepository remoteRepository, string installationDirectory)
+        /// <param name="context">The application's context.</param>
+        public InstallationManager(RemoteRepository remoteRepository, string installationDirectory, Context context)
         {
             this.installationDirectory = installationDirectory;
             this.remoteRepository = remoteRepository;
+            this.context = context;
         }
 
         /// <summary>
@@ -107,7 +114,7 @@ namespace DarkRift.Cli
             if (latestDarkRiftVersion != null)
                 return latestDarkRiftVersion;
 
-            latestDarkRiftVersion = Profile.Load().LatestKnownDarkRiftVersion;
+            latestDarkRiftVersion = context.Profile.LatestKnownDarkRiftVersion;
 
             if (latestDarkRiftVersion != null)
             {

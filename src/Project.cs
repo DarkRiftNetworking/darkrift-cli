@@ -12,11 +12,6 @@ namespace DarkRift.Cli
     public class Project
     {
         /// <summary>
-        /// The singleton instance of the profile class.
-        /// </summary>
-        private static Project instance;
-
-        /// <summary>
         ///     The runtime settings.
         /// </summary>
         public Runtime Runtime { get; set; }
@@ -24,43 +19,24 @@ namespace DarkRift.Cli
         /// <summary>
         /// Load's the project from disk.
         /// </summary>
+        /// <param>The file to load.</param>
         /// <returns>The project.</returns>
-        public static Project Load()
+        public static Project Load(string path)
         {
-            if (instance == null)
-            {
-                try {
-                    using XmlReader reader = XmlReader.Create("Project.xml");
-                    XmlSerializer ser = new XmlSerializer(typeof(Project));
-                    instance = (Project)ser.Deserialize(reader);
-                }
-                catch (IOException)
-                {
-                    instance = new Project();
-                }
-            }
-
-            return instance;
+            using XmlReader reader = XmlReader.Create(path);
+            XmlSerializer ser = new XmlSerializer(typeof(Project));
+            return (Project)ser.Deserialize(reader);
         }
 
         /// <summary>
         /// Saves any edits to the project to disk.
         /// </summary>
-        public void Save()
+        /// <param>The file to save to.</param>
+        public void Save(string path)
         {
-            using XmlWriter writer = XmlWriter.Create("Project.xml", new XmlWriterSettings { Indent = true });
+            using XmlWriter writer = XmlWriter.Create(path, new XmlWriterSettings { Indent = true });
             XmlSerializer ser = new XmlSerializer(typeof(Project));
             ser.Serialize(writer, this);
-        }
-
-        /// <summary>
-        /// Returns if the current directory is the directory where project is located
-        /// by checking existence of Project.xml file.
-        /// </summary>
-        /// <returns>Returns if the current directory is a project directory</returns>
-        public static bool IsCurrentDirectoryAProject()
-        {
-            return File.Exists("Project.xml");
         }
     }
 }

@@ -45,21 +45,28 @@ namespace DarkRift.Cli
         /// </summary>
         private readonly Templater templater;
 
-        public Program(InstallationManager installationManager, DocumentationManager documentationManager, Templater templater)
+        /// <summary>
+        /// The application's context.
+        /// </summary>
+        private readonly Context context;
+
+        public Program(InstallationManager installationManager, DocumentationManager documentationManager, Templater templater, Context context)
         {
             this.documentationManager = documentationManager;
             this.templater = templater;
+            this.context = context;
             this.installationManager = installationManager;
         }
 
         public static int Main(string[] args)
         {
-            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
-            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
+            Context context = Context.Load(Path.Combine(USER_DR_DIR, "profile.xml"), "Project.xml");
+            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager(context), context);
+            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"), context);
             DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
             Templater templater = new Templater(TEMPLATES_PATH);
 
-            Program program = new Program(installationManager, documentationManager, templater);
+            Program program = new Program(installationManager, documentationManager, templater, context);
 
             return new Parser(SetupParser).ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
                 .MapResult(
@@ -113,15 +120,14 @@ namespace DarkRift.Cli
 
         private int Run(RunOptions opts)
         {
-            Project project = Project.Load();
-
-            if (project.Runtime == null)
+            // If we're not in a project then try our best to guess settings
+            if (context.Project?.Runtime == null)
             {
-                project.Runtime = new Runtime(installationManager.GetLatestDarkRiftVersion(), ServerTier.Free, ServerPlatform.Framework);
-                project.Save();
+                Console.Error.WriteLine(Output.Red("Unable to get desired runtime from project file, are you sture this is a DarkRift project?"));
+                return 1;
             }
 
-            DarkRiftInstallation installation = installationManager.Install(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform, false);
+            DarkRiftInstallation installation = installationManager.Install(context.Project.Runtime.Version, context.Project.Runtime.Tier, context.Project.Runtime.Platform, false);
             if (installation == null)
             {
                 Console.Error.WriteLine(Output.Red("Unable to find correct version of DarkRift locally and unable to download it."));
@@ -179,13 +185,11 @@ namespace DarkRift.Cli
             if (opts.Version == null)
             {
                 // If version info was omitted, set parameters to current project settings
-                if (Project.IsCurrentDirectoryAProject())
+                if (context.Project?.Runtime != null)
                 {
-                    Project project = Project.Load();
-
-                    version = project.Runtime.Version;
-                    platform = project.Runtime.Platform;
-                    tier = project.Runtime.Tier;
+                    version = context.Project.Runtime.Version;
+                    platform = context.Project.Runtime.Platform;
+                    tier = context.Project.Runtime.Tier;
                 }
                 else
                 {
@@ -248,16 +252,14 @@ namespace DarkRift.Cli
             if (opts.Version == null)
             {
                 // If version info was omitted, overwrite any parameters with current project settings
-                if (Project.IsCurrentDirectoryAProject())
+                if (context.Project?.Runtime != null)
                 {
-                    Project project = Project.Load();
-
-                    opts.Version = project.Runtime.Version;
+                    opts.Version = context.Project.Runtime.Version;
                 }
                 else
                 {
                     Console.Error.WriteLine(Output.Red($"Couldn't find a version to download documentation. To download latest version 'latest'"));
-                    return 2;
+                    return 1;
                 }
             }
 

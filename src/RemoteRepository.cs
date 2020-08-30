@@ -18,12 +18,18 @@ namespace DarkRift.Cli
         private readonly InvoiceManager invoiceManager;
 
         /// <summary>
+        /// The application's context.
+        /// </summary>
+        private readonly Context context;
+
+        /// <summary>
         /// Creates a new repository.
         /// </summary>
         /// <param name="invoiceManager">The invoice manager to use</param>
-        public RemoteRepository(InvoiceManager invoiceManager)
+        public RemoteRepository(InvoiceManager invoiceManager, Context context)
         {
             this.invoiceManager = invoiceManager;
+            this.context = context;
         }
 
         /// <summary>
@@ -129,9 +135,8 @@ namespace DarkRift.Cli
 
                 Console.WriteLine($"Latest version of DarkRift is {versionMetadata.Latest}.");
 
-                Profile profile = Profile.Load();
-                profile.LatestKnownDarkRiftVersion = versionMetadata.Latest;
-                profile.Save();
+                context.Profile.LatestKnownDarkRiftVersion = versionMetadata.Latest;
+                context.Save();
 
                 return versionMetadata.Latest;
             }
