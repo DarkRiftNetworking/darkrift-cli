@@ -123,7 +123,7 @@ namespace DarkRift.Cli
             // If we're not in a project then try our best to guess settings
             if (context.Project?.Runtime == null)
             {
-                Console.Error.WriteLine(Output.Red("Unable to get desired runtime from project file, are you sture this is a DarkRift project?"));
+                Console.Error.WriteLine(Output.Red("Unable to get desired runtime from project file, are you sure this is a DarkRift project?"));
                 return 1;
             }
 
