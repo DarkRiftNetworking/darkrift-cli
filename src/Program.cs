@@ -11,6 +11,7 @@ using System.Net;
 using CommandLine;
 using Crayon;
 using System.Collections.Generic;
+using DarkRift.Cli.Templating;
 
 [assembly:InternalsVisibleTo("darkrift-cli-test")]
 [assembly:InternalsVisibleTo("DynamicProxyGenAssembly2")]
@@ -60,38 +61,26 @@ namespace DarkRift.Cli
 
             string version = opts.Version ?? installationManager.GetLatestDarkRiftVersion();
             ServerTier tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
+            string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
 
-            // Try and make sure version is installed
             installationManager.Install(version, tier, opts.Platform, false);
 
-            string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
-            string templatePath = Path.Combine(TEMPLATES_PATH, opts.Type + ".zip");
-
-            Directory.CreateDirectory(targetDirectory);
-
-            if (Directory.GetFiles(targetDirectory).Length > 0 && !opts.Force)
+            Templater templater = new Templater(TEMPLATES_PATH);
+            try
+            {
+                templater.Template(opts.Type, targetDirectory, version, tier, opts.Platform, opts.Force);
+            }
+            catch (DirectoryNotEmptyException)
             {
                 Console.Error.WriteLine(Output.Red("Cannot create from template, the directory is not empty. Use -f to force creation."));
                 Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + Parser.Default.FormatCommandLine(new NewOptions { Type = opts.Type, TargetDirectory = opts.TargetDirectory, Force = true }));
                 return 1;
             }
-
-            if (!File.Exists(templatePath))
+            catch (ArgumentException e)
             {
-                Console.Error.WriteLine(Output.Red("Cannot create from template, no template with that name exists."));
+                Console.Error.WriteLine(Output.Red(e.Message));
                 return 1;
             }
-
-            Console.WriteLine($"Creating new {opts.Type} '{Path.GetFileName(targetDirectory)}' from template...");
-
-            ZipFile.ExtractToDirectory(templatePath, targetDirectory, true);
-
-            Console.WriteLine($"Cleaning up extracted artifacts...");
-
-            foreach (string path in Directory.GetFiles(targetDirectory, "*.*", SearchOption.AllDirectories))
-                FileTemplater.TemplateFileAndPath(path, Path.GetFileName(targetDirectory), version, opts.Pro ? ServerTier.Pro : ServerTier.Free, opts.Platform);
-
-            Console.WriteLine(Output.Green($"Created '{Path.GetFileName(targetDirectory)}'"));
 
             return 0;
         }

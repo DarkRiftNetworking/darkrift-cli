@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DarkRift.Cli
+namespace DarkRift.Cli.Templating
 {
     [TestClass]
     public class FileTemplaterTest

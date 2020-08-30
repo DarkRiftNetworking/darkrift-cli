@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace DarkRift.Cli
+namespace DarkRift.Cli.Templating
 {
     /// <summary>
     ///     Handles templating of generated files.
