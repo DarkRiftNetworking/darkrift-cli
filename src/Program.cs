@@ -13,16 +13,21 @@ using Crayon;
 using System.Collections.Generic;
 
 [assembly:InternalsVisibleTo("darkrift-cli-test")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+[assembly:InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 namespace DarkRift.Cli
 {
-    internal class Program
+    internal static class Program
     {
         /// <summary>
         /// The location of the template archives.
         /// <summary>
         private static readonly string TEMPLATES_PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "templates");
+
+        /// <summary>
+        /// The DarkRift settings directory path.
+        /// </summary>
+        private static readonly string USER_DR_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".darkrift");
 
         public static int Main(string[] args)
         {
@@ -51,12 +56,13 @@ namespace DarkRift.Cli
 
         private static int New(NewOptions opts)
         {
-            string version = opts.Version ?? VersionManager.GetLatestDarkRiftVersion();
+            InstallationManager installationManager = new InstallationManager(new RemoteRepository(new InvoiceManager()), Path.Combine(USER_DR_DIR, "installed"));
+
+            string version = opts.Version ?? installationManager.GetLatestDarkRiftVersion();
             ServerTier tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
 
-            // Executes the command to download the version if it doesn't exist
-            if (!VersionManager.IsVersionInstalled(version, tier, opts.Platform))
-                VersionManager.DownloadVersion(version, tier, opts.Platform);
+            // Try and make sure version is installed
+            installationManager.Install(version, tier, opts.Platform, false);
 
             string targetDirectory = opts.TargetDirectory ?? Environment.CurrentDirectory;
             string templatePath = Path.Combine(TEMPLATES_PATH, opts.Type + ".zip");
@@ -92,43 +98,24 @@ namespace DarkRift.Cli
 
         private static int Run(RunOptions opts)
         {
+            InstallationManager installationManager = new InstallationManager(new RemoteRepository(new InvoiceManager()), Path.Combine(USER_DR_DIR, "installed"));
+
             Project project = Project.Load();
 
             if (project.Runtime == null)
             {
-                project.Runtime = new Runtime(VersionManager.GetLatestDarkRiftVersion(), ServerTier.Free, ServerPlatform.Framework);
+                project.Runtime = new Runtime(installationManager.GetLatestDarkRiftVersion(), ServerTier.Free, ServerPlatform.Framework);
                 project.Save();
             }
 
-            // Executes the command to download the version if it doesn't exist
-            if (!VersionManager.IsVersionInstalled(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform))
-                VersionManager.DownloadVersion(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
-
-            string path = VersionManager.GetInstallationPath(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform);
-
-            // Calculate the executable file to run
-            string fullPath;
-            IEnumerable<string> args;
-            if (project.Runtime.Platform == ServerPlatform.Framework)
+            DarkRiftInstallation installation = installationManager.Install(project.Runtime.Version, project.Runtime.Tier, project.Runtime.Platform, false);
+            if (installation == null)
             {
-                fullPath = Path.Combine(path, "DarkRift.Server.Console.exe");
-                args = opts.Values;
-            }
-            else
-            {
-                fullPath = "dotnet";
-                args = opts.Values.Prepend(Path.Combine(path, "Lib", "DarkRift.Server.Console.dll"));
+                Console.Error.WriteLine(Output.Red("Unable to find correct version of DarkRift locally and unable to download it."));
+                return 1;
             }
 
-            using Process process = new Process
-            {
-                StartInfo = new ProcessStartInfo(fullPath, string.Join(" ", args))
-            };
-            process.Start();
-
-            process.WaitForExit();
-
-            return process.ExitCode;
+            return installation.Run(opts.Values);
         }
 
         private static int Get(GetOptions opts)
@@ -169,67 +156,73 @@ namespace DarkRift.Cli
             // If --list was specified, list installed versions and tell if documentation for that version is available locally
             if (opts.List)
             {
-                VersionManager.ListInstalledVersions();
+                PrintInstalledVersions();
                 return 0;
             }
 
-            // if version provided is "latest", it is being replaced with currently most recent one
-            if (opts.Version == "latest")
-            {
-                opts.Version = VersionManager.GetLatestDarkRiftVersion();
-            }
+            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
+            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
+            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
 
+            string version;
+            ServerTier tier;
+            ServerPlatform platform;
             if (opts.Version == null)
             {
-                // if version info was omitted, overwrite any parameters with current project settings
+                // If version info was omitted, set parameters to current project settings
                 if (Project.IsCurrentDirectoryAProject())
                 {
                     Project project = Project.Load();
 
-                    opts.Version = project.Runtime.Version;
-                    opts.Platform = project.Runtime.Platform;
-                    opts.Pro = project.Runtime.Tier == ServerTier.Pro;
+                    version = project.Runtime.Version;
+                    platform = project.Runtime.Platform;
+                    tier = project.Runtime.Tier;
                 }
                 else
                 {
                     Console.Error.WriteLine(Output.Red($"Couldn't find a version to install. To download latest version use 'latest'"));
-                    return 2;
+                    return 1;
                 }
-            }
-
-            ServerTier actualTier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
-
-            // If --docs was specified, download documentation instead
-            bool success = false;
-            if (opts.Docs)
-            {
-                bool docsInstalled = VersionManager.IsDocumentationInstalled(opts.Version);
-
-                if (docsInstalled && !opts.Force)
-                {
-                    Console.WriteLine(Output.Green($"Documentation for DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
-                    success = true;
-                }
-                else
-                    success = VersionManager.DownloadDocumentation(opts.Version);
             }
             else
             {
-                bool versionInstalled = VersionManager.IsVersionInstalled(opts.Version, actualTier, opts.Platform);
-                if (versionInstalled && !opts.Force)
-                {
-                    Console.WriteLine(Output.Green($"DarkRift {opts.Version} - {actualTier} (.NET {opts.Platform}) already installed! To force a reinstall use the option -f or --force"));
-                    success = true;
-                }
-                else
-                    success = VersionManager.DownloadVersion(opts.Version, actualTier, opts.Platform);
+                version = opts.Version == "latest" ? installationManager.GetLatestDarkRiftVersion() : opts.Version;
+                tier = opts.Pro ? ServerTier.Pro : ServerTier.Free;
+                platform = opts.Platform;
             }
 
-            if (!success)
+            // If --docs was specified, download documentation instead
+            if (opts.Docs)
             {
-                Console.Error.WriteLine(Output.Red("Invalid command"));
-                Console.Error.WriteLine("\t" + Environment.GetCommandLineArgs()[0] + " " + Parser.Default.FormatCommandLine(new PullOptions()));
-                return 1;
+                bool docsInstalled = documentationManager.GetInstallation(version) != null;
+                if (docsInstalled && !opts.Force)
+                {
+                    Console.WriteLine(Output.Green($"Documentation for DarkRift {version} - {tier} (.NET {platform}) already installed! To force a reinstall use the option -f or --force"));
+                }
+                else
+                {
+                    if (documentationManager.Install(version, opts.Force) == null)
+                    {
+                        Console.Error.WriteLine(Output.Red($"Could not install the requested documentation."));
+                        return 1;
+                    }
+                }
+            }
+            else
+            {
+                bool versionInstalled = installationManager.GetInstallation(version, tier, platform) != null;
+                if (versionInstalled && !opts.Force)
+                {
+                    Console.WriteLine(Output.Green($"DarkRift {version} - {tier} (.NET {platform}) already installed! To force a reinstall use the option -f or --force"));
+                }
+                else
+                {
+                    if (installationManager.Install(version, tier, platform, opts.Force) == null)
+                    {
+                        Console.Error.WriteLine(Output.Red($"Could not install the requested version."));
+                        return 1;
+                    }
+                }
             }
 
             return 0;
@@ -237,10 +230,14 @@ namespace DarkRift.Cli
 
         private static int Docs(DocsOptions opts)
         {
+            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
+            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
+            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
+
             // If version provided is "latest", it is being replaced with currently most recent one
             if (opts.Version == "latest")
             {
-                opts.Version = VersionManager.GetLatestDarkRiftVersion();
+                opts.Version = installationManager.GetLatestDarkRiftVersion();
             }
 
             if (opts.Version == null)
@@ -261,8 +258,9 @@ namespace DarkRift.Cli
 
             if (opts.Local)
             {
-                if (VersionManager.IsDocumentationInstalled(opts.Version))
-                    BrowserUtil.OpenTo("file://" + VersionManager.GetDocumentationPath(opts.Version) + "/index.html");
+                DocumentationInstallation installation = documentationManager.GetInstallation(opts.Version);
+                if (installation != null)
+                    installation.Open();
                 else
                     Console.Error.WriteLine(Output.Red($"Documentation not installed, consider running \"darkrift pull {opts.Version} --docs\""));
             }
@@ -272,6 +270,58 @@ namespace DarkRift.Cli
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// Lists installed DarkRift versions on the console along with the documentation
+        /// </summary>
+        public static void PrintInstalledVersions()
+        {
+            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager());
+            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"));
+            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
+
+            // Since the free version only supports .Net Framework I'm not adding support here
+            List<DarkRiftInstallation> freeInstallations = installationManager.GetVersions(ServerTier.Free, ServerPlatform.Framework);
+
+            List<DarkRiftInstallation> proFrameworkInstallations = installationManager.GetVersions(ServerTier.Pro, ServerPlatform.Framework);
+            List<DarkRiftInstallation> proCoreInstallations = installationManager.GetVersions(ServerTier.Pro, ServerPlatform.Core);
+
+            if (freeInstallations.Count == 0 && proFrameworkInstallations.Count == 0 && proCoreInstallations.Count == 0)
+            {
+                Console.Error.WriteLine(Output.Red($"You don't have any versions of DarkRift installed"));
+                return;
+            }
+
+            foreach (DarkRiftInstallation installation in freeInstallations)
+                PrintVersion(installation, documentationManager.GetInstallation(installation.Version) != null);
+            foreach (DarkRiftInstallation installation in proFrameworkInstallations)
+                PrintVersion(installation, documentationManager.GetInstallation(installation.Version) != null);
+            foreach (DarkRiftInstallation installation in proCoreInstallations)
+                PrintVersion(installation, documentationManager.GetInstallation(installation.Version) != null);
+        }
+
+        /// <summary>
+        /// Prints version information on the console
+        /// </summary>
+        /// <param name="installation">The installation to be printed.</param>
+        /// <param name="isDocumentationInstalled">Whether the respective documentation for this version is installed.</param>
+        private static void PrintVersion(DarkRiftInstallation installation, bool isDocumentationInstalled)
+        {
+            string output = "";
+
+            // There's no free or pro in documentation
+
+            output += $"DarkRift {installation.Version} - {installation.Tier} (.NET {installation.Platform})";
+
+            if (isDocumentationInstalled)
+                output += " and its documentation are";
+            else
+                output += " is";
+
+            output += " installed";
+
+            Console.WriteLine(output);
         }
     }
 }

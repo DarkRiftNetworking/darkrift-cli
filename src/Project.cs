@@ -30,11 +30,9 @@ namespace DarkRift.Cli
             if (instance == null)
             {
                 try {
-                    using (XmlReader reader = XmlReader.Create("Project.xml"))
-                    {
-                        XmlSerializer ser = new XmlSerializer(typeof(Project));
-                        instance = (Project)ser.Deserialize(reader);
-                    }
+                    using XmlReader reader = XmlReader.Create("Project.xml");
+                    XmlSerializer ser = new XmlSerializer(typeof(Project));
+                    instance = (Project)ser.Deserialize(reader);
                 }
                 catch (IOException)
                 {
@@ -50,11 +48,9 @@ namespace DarkRift.Cli
         /// </summary>
         public void Save()
         {
-            using (XmlWriter writer = XmlWriter.Create("Project.xml", new XmlWriterSettings { Indent = true }))
-            {
-                XmlSerializer ser = new XmlSerializer(typeof(Project));
-                ser.Serialize(writer, this);
-            }
+            using XmlWriter writer = XmlWriter.Create("Project.xml", new XmlWriterSettings { Indent = true });
+            XmlSerializer ser = new XmlSerializer(typeof(Project));
+            ser.Serialize(writer, this);
         }
 
         /// <summary>
