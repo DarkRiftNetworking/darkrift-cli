@@ -9,7 +9,7 @@ namespace DarkRift.Cli
     /// Holds a user's profile settings.
     /// </summary>
     // Namespace here is because we used to use DataContractSerializer
-    [XmlRoot(Namespace="http://schemas.datacontract.org/2004/07/DarkRift.Cli")]
+    [XmlRoot(Namespace = "http://schemas.datacontract.org/2004/07/DarkRift.Cli")]
     public class Profile
     {
         /// <summary>
@@ -27,7 +27,7 @@ namespace DarkRift.Cli
         /// </summary>
         /// <param>The file to load.</param>
         /// <returns>The user's profile.</returns>
-        public static Profile Load(string path)
+        internal static Profile Load(string path)
         {
             using XmlReader reader = XmlReader.Create(path);
             XmlSerializer ser = new XmlSerializer(typeof(Profile));
@@ -38,7 +38,7 @@ namespace DarkRift.Cli
         /// Saves any edits to the user's profile to disk.
         /// </summary>
         /// <param>The file to save to.</param>
-        public void Save(string path)
+        internal void Save(string path)
         {
             using XmlWriter writer = XmlWriter.Create(path, new XmlWriterSettings { Indent = true });
             XmlSerializer ser = new XmlSerializer(typeof(Profile));

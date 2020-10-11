@@ -3,10 +3,15 @@ using Crayon;
 
 namespace DarkRift.Cli
 {
+    internal interface IInvoiceManager
+    {
+        string GetInvoiceNumber();
+    }
+
     /// <summary>
     /// Handles the user's invoice details.
     /// </summary>
-    internal class InvoiceManager
+    internal class InvoiceManager : IInvoiceManager
     {
         /// <summary>
         /// The application's context.

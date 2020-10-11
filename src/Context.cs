@@ -4,10 +4,18 @@ using System.IO;
 
 namespace DarkRift.Cli
 {
+    internal interface IContext
+    {
+        Profile Profile { get; }
+        Project Project { get; }
+
+        void Save();
+    }
+
     /// <summary>
     /// The application's context.
     /// </summary>
-    internal class Context
+    internal class Context : IContext
     {
         /// <summary>
         /// The profile to use.
@@ -83,7 +91,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// Update context files with changes made.
         /// </summary>
-        internal void Save()
+        public void Save()
         {
             Profile.Save(profileFile);
             Project?.Save(projectFile);

@@ -4,6 +4,7 @@ using System.Net;
 using System.IO.Compression;
 using Crayon;
 using System.Collections.Generic;
+using DarkRift.Cli.Utility;
 
 namespace DarkRift.Cli
 {
@@ -15,21 +16,33 @@ namespace DarkRift.Cli
         /// <summary>
         /// The invoice manager to use.
         /// </summary>
-        private readonly InvoiceManager invoiceManager;
+        private readonly IInvoiceManager invoiceManager;
 
         /// <summary>
         /// The application's context.
         /// </summary>
-        private readonly Context context;
+        private readonly IContext context;
+
+        /// <summary>
+        /// The web client utility to use.
+        /// </summary>
+        private readonly IWebClientUtility webClientUtility;
+
+        /// <summary>
+        /// The file utility to use.
+        /// </summary>
+        private readonly IFileUtility fileUtility;
 
         /// <summary>
         /// Creates a new repository.
         /// </summary>
         /// <param name="invoiceManager">The invoice manager to use</param>
-        public RemoteRepository(InvoiceManager invoiceManager, Context context)
+        public RemoteRepository(IInvoiceManager invoiceManager, IContext context, IWebClientUtility webClientUtility, IFileUtility fileUtility)
         {
             this.invoiceManager = invoiceManager;
             this.context = context;
+            this.webClientUtility = webClientUtility;
+            this.fileUtility = fileUtility;
         }
 
         /// <summary>
@@ -42,9 +55,9 @@ namespace DarkRift.Cli
         /// <returns>True if installed successfully otherwise false</returns>
         public bool DownloadVersionTo(string version, ServerTier tier, ServerPlatform platform, string downloadDirectory)
         {
-            string stagingPath = Path.GetTempFileName();
+            string stagingPath = fileUtility.GetTempFileName();
 
-            string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/{tier}/{platform}/";
+            string uri = $"/DarkRift2/Releases/{version}/{tier}/{platform}/";
             if (tier == ServerTier.Pro)
             {
                 string invoiceNumber = invoiceManager.GetInvoiceNumber();
@@ -59,8 +72,7 @@ namespace DarkRift.Cli
 
             try
             {
-                using WebClient myWebClient = new WebClient();
-                myWebClient.DownloadFile(uri, stagingPath);
+                webClientUtility.DownloadFile(uri, stagingPath);
             }
             catch (WebException e)
             {
@@ -70,13 +82,10 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Extracting package...");
 
-            Directory.CreateDirectory(downloadDirectory);
-
-            ZipFile.ExtractToDirectory(stagingPath, downloadDirectory, true);
+            fileUtility.ExtractZipTo(stagingPath, downloadDirectory);
+            fileUtility.Delete(stagingPath);
 
             Console.WriteLine(Output.Green($"Successfully downloaded DarkRift {version} - {tier} (.NET {platform})."));
-
-            File.Delete(stagingPath);
 
             return true;
         }
@@ -89,13 +98,12 @@ namespace DarkRift.Cli
         /// <returns>True for success otherwise false</returns>
         public bool DownloadDocumentationTo(string version, string downloadDirectory)
         {
-            string stagingPath = Path.GetTempFileName();
+            string stagingPath = fileUtility.GetTempFileName();
 
-            string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/{version}/Docs/";
+            string uri = $"/DarkRift2/Releases/{version}/Docs/";
             try
             {
-                using WebClient myWebClient = new WebClient();
-                myWebClient.DownloadFile(uri, stagingPath);
+                webClientUtility.DownloadFile(uri, stagingPath);
             }
             catch (WebException e)
             {
@@ -105,13 +113,10 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Extracting package...");
 
-            Directory.CreateDirectory(downloadDirectory);
-
-            ZipFile.ExtractToDirectory(stagingPath, downloadDirectory, true);
+            fileUtility.ExtractZipTo(stagingPath, downloadDirectory);
+            fileUtility.Delete(stagingPath);
 
             Console.WriteLine(Output.Green($"Successfully downloaded ocumentation for DarkRift {version}."));
-
-            File.Delete(stagingPath);
 
             return true;
         }
@@ -124,21 +129,11 @@ namespace DarkRift.Cli
         {
             Console.WriteLine("Querying server for the latest DarkRift version...");
 
-            string uri = $"https://www.darkriftnetworking.com/DarkRift2/Releases/";
+            string uri = $"/DarkRift2/Releases/";
+            string latestJson;
             try
             {
-                using WebClient myWebClient = new WebClient();
-                string latestJson = myWebClient.DownloadString(uri);
-
-                // Parse out 'latest' field
-                VersionMetadata versionMetadata = VersionMetadata.Parse(latestJson);
-
-                Console.WriteLine($"Latest version of DarkRift is {versionMetadata.Latest}.");
-
-                context.Profile.LatestKnownDarkRiftVersion = versionMetadata.Latest;
-                context.Save();
-
-                return versionMetadata.Latest;
+                latestJson = webClientUtility.DownloadString(uri);
             }
             catch (WebException e)
             {
@@ -146,6 +141,16 @@ namespace DarkRift.Cli
 
                 return null;
             }
+
+            // Parse out 'latest' field
+            VersionMetadata versionMetadata = VersionMetadata.Parse(latestJson);
+
+            Console.WriteLine($"Latest version of DarkRift is {versionMetadata.Latest}.");
+
+            context.Profile.LatestKnownDarkRiftVersion = versionMetadata.Latest;
+            context.Save();
+
+            return versionMetadata.Latest;
         }
     }
 }

@@ -1,10 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
-using System.Reflection.Metadata;
-using System.Reflection;
-using System.Linq;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -12,6 +7,7 @@ using CommandLine;
 using Crayon;
 using System.Collections.Generic;
 using DarkRift.Cli.Templating;
+using DarkRift.Cli.Utility;
 
 [assembly: InternalsVisibleTo("darkrift-cli-test")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
@@ -29,6 +25,11 @@ namespace DarkRift.Cli
         /// The DarkRift settings directory path.
         /// </summary>
         private static readonly string USER_DR_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".darkrift");
+
+        /// <summary>
+        /// The URL of the DarkRift website.
+        /// </summary>
+        private static readonly string BASE_URL = "https://www.darkriftnetworking.com";
 
         /// <summary>
         /// The installation manager to use.
@@ -61,9 +62,16 @@ namespace DarkRift.Cli
         public static int Main(string[] args)
         {
             Context context = Context.Load(Path.Combine(USER_DR_DIR, "profile.xml"), "Project.xml");
-            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager(context), context);
+
+            using WebClient webClient = new WebClient
+            {
+                BaseAddress = BASE_URL
+            };
+            RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager(context), context, new WebClientUtility(webClient), new FileUtility());
+
             InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"), context);
             DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
+
             Templater templater = new Templater(TEMPLATES_PATH);
 
             Program program = new Program(installationManager, documentationManager, templater, context);
