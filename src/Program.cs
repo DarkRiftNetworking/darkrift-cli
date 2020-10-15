@@ -69,8 +69,8 @@ namespace DarkRift.Cli
             };
             RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager(context), context, new WebClientUtility(webClient), new FileUtility());
 
-            InstallationManager installationManager = new InstallationManager(remoteRepository, Path.Combine(USER_DR_DIR, "installed"), context);
-            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, Path.Combine(USER_DR_DIR, "documetation"));
+            InstallationManager installationManager = new InstallationManager(remoteRepository, new FileUtility(), Path.Combine(USER_DR_DIR, "installed"), context);
+            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, new FileUtility(), Path.Combine(USER_DR_DIR, "documetation"));
 
             Templater templater = new Templater(TEMPLATES_PATH);
 

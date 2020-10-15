@@ -22,7 +22,7 @@ namespace DarkRift.Cli
             // GIVEN a temporary file path
             mockIFileUtility.Setup(f => f.GetTempFileName()).Returns("a-staging-path");
 
-            // GIVEN the context is setup
+            // AND the context is setup
             mockIContext.Setup(c => c.Profile).Returns(new Profile());
         }
 

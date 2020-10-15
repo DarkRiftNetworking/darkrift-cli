@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using System;
-using System.Net;
-using System.IO.Compression;
 using Crayon;
 using System.Collections.Generic;
 using System.Linq;
+using DarkRift.Cli.Utility;
 
 namespace DarkRift.Cli
 {
@@ -16,7 +15,12 @@ namespace DarkRift.Cli
         /// <summary>
         /// The remote repository to use.
         /// </summary>
-        private readonly RemoteRepository remoteRepository;
+        private readonly IRemoteRepository remoteRepository;
+
+        /// <summary>
+        /// The file utility to use.
+        /// </summary>
+        private readonly IFileUtility fileUtility;
 
         /// <summary>
         /// The latest version of DarkRift.
@@ -31,17 +35,19 @@ namespace DarkRift.Cli
         /// <summary>
         /// The application's context.
         /// </summary>
-        private readonly Context context;
+        private readonly IContext context;
 
         /// <summary>
         /// Creates a new installation manager.
         /// </summary>
         /// <param name="remoteRepository">The remote respository to download versions from.</param>
+        /// <param name="fileUtility">The file utility to use.</param>
         /// <param name="installationDirectory">The directory to place DR installations in.</param>
         /// <param name="context">The application's context.</param>
-        public InstallationManager(RemoteRepository remoteRepository, string installationDirectory, Context context)
+        public InstallationManager(IRemoteRepository remoteRepository, IFileUtility fileUtility, string installationDirectory, IContext context)
         {
             this.installationDirectory = installationDirectory;
+            this.fileUtility = fileUtility;
             this.remoteRepository = remoteRepository;
             this.context = context;
         }
@@ -56,7 +62,7 @@ namespace DarkRift.Cli
         public DarkRiftInstallation GetInstallation(string version, ServerTier tier, ServerPlatform platform)
         {
             string path = GetInstallationPath(version, tier, platform);
-            if (Directory.Exists(path))
+            if (fileUtility.DirectoryExists(path))
                 return new DarkRiftInstallation(version, tier, platform, path);
 
             return null;
@@ -70,16 +76,13 @@ namespace DarkRift.Cli
         /// <returns>A list of installed versions</returns>
         public List<DarkRiftInstallation> GetVersions(ServerTier tier, ServerPlatform platform)
         {
-            try
-            {
-                return Directory.GetDirectories(Path.Combine(installationDirectory, tier.ToString().ToLower(), platform.ToString().ToLower()))
-                                .Select(path => new DarkRiftInstallation(Path.GetFileName(path), tier, platform, path))
-                                .ToList();
-            }
-            catch (IOException)
-            {
+            string searchPath = Path.Combine(installationDirectory, tier.ToString().ToLower(), platform.ToString().ToLower());
+            if (!fileUtility.DirectoryExists(searchPath))
                 return new List<DarkRiftInstallation>();
-            };
+            else
+                return fileUtility.GetDirectories(searchPath)
+                                  .Select(path => new DarkRiftInstallation(path, tier, platform, Path.Combine(searchPath, path)))
+                                  .ToList();
         }
 
         /// <summary>
@@ -92,7 +95,7 @@ namespace DarkRift.Cli
         public DarkRiftInstallation Install(string version, ServerTier tier, ServerPlatform platform, bool forceRedownload)
         {
             string path = GetInstallationPath(version, tier, platform);
-            if (forceRedownload || !Directory.Exists(path))
+            if (forceRedownload || !fileUtility.DirectoryExists(path))
             {
                 if (!remoteRepository.DownloadVersionTo(version, tier, platform, path))
                     return null;

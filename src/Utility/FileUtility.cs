@@ -6,7 +6,9 @@ namespace DarkRift.Cli.Utility
     internal interface IFileUtility
     {
         void Delete(string path);
+        bool DirectoryExists(string path);
         void ExtractZipTo(string sourceZip, string targetDirectory);
+        string[] GetDirectories(string path);
         string GetTempFileName();
     }
 
@@ -16,7 +18,7 @@ namespace DarkRift.Cli.Utility
     internal class FileUtility : IFileUtility
     {
         /// <summary>
-        /// Get a temporary file path.
+        /// Mockable <see cref="Path.GetTempFileName"/>
         /// </summary>
         /// <returns>The temporary file path.</returns>
         public string GetTempFileName()
@@ -37,12 +39,32 @@ namespace DarkRift.Cli.Utility
         }
 
         /// <summary>
-        /// Delete the specified file.
+        /// Mockable <see cref="File.Delete(string)"/>
         /// </summary>
         /// <param name="path"></param>
         public void Delete(string path)
         {
             File.Delete(path);
+        }
+
+        /// <summary>
+        /// Mockable <see cref="Directory.Exists(string)"/>
+        /// </summary>
+        /// <param name="path">The path to check.</param>
+        /// <returns>Whether the directory exists.</returns>
+        public bool DirectoryExists(string path)
+        {
+            return Directory.Exists(path);
+        }
+
+        /// <summary>
+        /// Mockable <see cref="Directory.GetDirectories(string)"/>
+        /// </summary>
+        /// <param name="path">The path to search.</param>
+        /// <returns></returns>
+        public string[] GetDirectories(string path)
+        {
+            return Directory.GetDirectories(path);
         }
     }
 }

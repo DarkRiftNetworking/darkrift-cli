@@ -5,6 +5,7 @@ using System.IO.Compression;
 using Crayon;
 using System.Collections.Generic;
 using System.Linq;
+using DarkRift.Cli.Utility;
 
 namespace DarkRift.Cli
 {
@@ -16,7 +17,12 @@ namespace DarkRift.Cli
         /// <summary>
         /// The remote repository to use.
         /// </summary>
-        private readonly RemoteRepository remoteRepository;
+        private readonly IRemoteRepository remoteRepository;
+
+        /// <summary>
+        /// The file utility to use.
+        /// </summary>
+        private readonly IFileUtility fileUtility;
 
         /// <summary>
         /// The directory to place DR installations in.
@@ -27,11 +33,13 @@ namespace DarkRift.Cli
         /// Creates a new documentation manager.
         /// </summary>
         /// <param name="remoteRepository">The remote respository to download versions from.</param>
+        /// <param name="fileUtility">The file utility to use.</param>
         /// <param name="installationDirectory">The directory to place DR documentation in.</param>
-        public DocumentationManager(RemoteRepository remoteRepository, string installationDirectory)
+        public DocumentationManager(IRemoteRepository remoteRepository, IFileUtility fileUtility, string installationDirectory)
         {
             this.installationDirectory = installationDirectory;
             this.remoteRepository = remoteRepository;
+            this.fileUtility = fileUtility;
         }
 
         /// <summary>
@@ -42,7 +50,7 @@ namespace DarkRift.Cli
         public DocumentationInstallation GetInstallation(string version)
         {
             string path = GetInstallationPath(version);
-            if (Directory.Exists(path))
+            if (fileUtility.DirectoryExists(path))
                 return new DocumentationInstallation(version, path);
 
             return null;
@@ -54,16 +62,13 @@ namespace DarkRift.Cli
         /// <returns>A list of installed versions</returns>
         public List<DocumentationInstallation> GetVersions()
         {
-            try
-            {
-                return Directory.GetDirectories(Path.Combine(installationDirectory))
-                                .Select(path => new DocumentationInstallation(Path.GetFileName(path), path))
-                                .ToList();
-            }
-            catch (IOException)
-            {
+
+            if (!fileUtility.DirectoryExists(installationDirectory))
                 return new List<DocumentationInstallation>();
-            };
+            else
+                return fileUtility.GetDirectories(installationDirectory)
+                                  .Select(path => new DocumentationInstallation(path, Path.Combine(installationDirectory, path)))
+                                  .ToList();
         }
 
         /// <summary>
@@ -74,7 +79,7 @@ namespace DarkRift.Cli
         public DocumentationInstallation Install(string version, bool forceRedownload)
         {
             string path = GetInstallationPath(version);
-            if (forceRedownload || !Directory.Exists(path))
+            if (forceRedownload || !fileUtility.DirectoryExists(path))
             {
                 if (!remoteRepository.DownloadDocumentationTo(version, path))
                     return null;

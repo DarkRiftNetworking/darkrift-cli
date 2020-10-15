@@ -8,10 +8,17 @@ using DarkRift.Cli.Utility;
 
 namespace DarkRift.Cli
 {
+    internal interface IRemoteRepository
+    {
+        bool DownloadDocumentationTo(string version, string downloadDirectory);
+        bool DownloadVersionTo(string version, ServerTier tier, ServerPlatform platform, string downloadDirectory);
+        string GetLatestDarkRiftVersion();
+    }
+
     /// <summary>
     /// Represents the DR repository where resources can be pulled from.
     /// </summary>
-    internal class RemoteRepository
+    internal class RemoteRepository : IRemoteRepository
     {
         /// <summary>
         /// The invoice manager to use.
