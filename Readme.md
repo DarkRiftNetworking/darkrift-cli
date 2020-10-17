@@ -20,6 +20,12 @@ You can test your installation with
 darkrift version
 ```
 
+## From Scoop
+You can install the DarkRift CLI tool using [Scoop](https://scoop.sh/) on Windows:
+```bash
+scoop install https://raw.githubusercontent.com/DarkRiftNetworking/darkrift-cli/master/scoop/darkrift-cli.json
+```
+
 ## From Source
 To build from source, clone the repository and run `dotnet publish`. You will then have the same binaries as in the release in the `bin/` folder and can follow the steps above to install.
 

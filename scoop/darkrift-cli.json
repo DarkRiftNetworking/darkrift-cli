@@ -1,0 +1,12 @@
+{
+  "version": "v0.4.0",
+  "homepage": "https://github.com/DarkRiftNetworking/darkrift-cli",
+  "description": "This tool is designed to make DarkRift projects more structured and uniform across all users as well as providing a single interface to simplify common tasks.",
+  "license": "MIT",
+  "url": "https://github.com/DarkRiftNetworking/darkrift-cli/releases/download/v0.4.0/darkrift-cli.zip",
+  "bin": "darkrift.bat",
+  "checkver": "github",
+  "autoupdate": {
+    "url": "https://github.com/DarkRiftNetworking/darkrift-cli/releases/download/$version/darkrift-cli.zip"
+  }
+}
