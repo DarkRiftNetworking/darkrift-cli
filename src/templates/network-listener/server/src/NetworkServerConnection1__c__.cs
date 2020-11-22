@@ -3,7 +3,7 @@ using System.Net;
 using DarkRift;
 using DarkRift.Server;
 
-namespace __n__
+namespace __n__.Server
 {
     /// <summary>
     /// An unimplemented NetworkServerConnection.

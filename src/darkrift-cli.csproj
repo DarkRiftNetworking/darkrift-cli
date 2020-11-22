@@ -29,6 +29,7 @@
     <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/plugin" DestinationFile="$(OutputPath)/templates/plugin.zip" />
     <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/log-writer" DestinationFile="$(OutputPath)/templates/log-writer.zip" />
     <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/network-listener" DestinationFile="$(OutputPath)/templates/network-listener.zip" />
+    <ZipDirectory SourceDirectory="$(MSBuildProjectDirectory)/templates/server-registry-connector" DestinationFile="$(OutputPath)/templates/server-registry-connector.zip" />
   </Target>
 
   <Target Name="CleanTemplateArchives" AfterTargets="Clean">

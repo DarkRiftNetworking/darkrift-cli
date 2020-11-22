@@ -3,7 +3,7 @@ using System;
 using DarkRift;
 using DarkRift.Server;
 
-namespace __n__
+namespace __n__.Server
 {
     /// <summary>
     /// A simple network listener template.

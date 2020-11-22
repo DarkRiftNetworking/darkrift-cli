@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net4.5</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>8.0</LangVersion>
+    <RootNamespace>__n__</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="$(UserProfile)/.darkrift/installed/Free/Framework/2.7.0/Lib/DarkRift.dll" />
+    <Reference Include="$(UserProfile)/.darkrift/installed/Free/Framework/2.7.0/Lib/DarkRift.Client.dll" />
+    <Reference Include="$(UserProfile)/.darkrift/installed/Free/Framework/2.7.0/Lib/DarkRift.Server.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../client/src/__n__.Client.csproj" />
+    <ProjectReference Include="../server/src/__n__.Server.csproj" />
+  </ItemGroup>
+</Project>

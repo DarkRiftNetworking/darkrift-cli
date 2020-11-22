@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net4.5</TargetFramework>
+    <RootNamespace>__n__.Server</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="$(UserProfile)/.darkrift/installed/__t__/__p__/__v__/Lib/DarkRift.dll" />
+    <Reference Include="$(UserProfile)/.darkrift/installed/__t__/__p__/__v__/Lib/DarkRift.Server.dll" />
+  </ItemGroup>
+</Project>
