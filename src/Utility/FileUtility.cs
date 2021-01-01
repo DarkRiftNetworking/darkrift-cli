@@ -35,7 +35,7 @@ namespace DarkRift.Cli.Utility
         {
             Directory.CreateDirectory(targetDirectory);
 
-            ZipFile.ExtractToDirectory(sourceZip, sourceZip, true);
+            ZipFile.ExtractToDirectory(sourceZip, targetDirectory, true);
         }
 
         /// <summary>

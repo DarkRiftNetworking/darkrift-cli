@@ -89,8 +89,20 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Extracting package...");
 
-            fileUtility.ExtractZipTo(stagingPath, downloadDirectory);
-            fileUtility.Delete(stagingPath);
+            // TODO add a try finally here to ensure we don't leave a staging file nor partial install directory on failure
+            try
+            {
+                fileUtility.ExtractZipTo(stagingPath, downloadDirectory);
+            }
+            catch (Exception)
+            {
+                // Make sure we don't leave a partial install
+                fileUtility.Delete(downloadDirectory);
+            }
+            finally
+            {
+                fileUtility.Delete(stagingPath);
+            }
 
             Console.WriteLine(Output.Green($"Successfully downloaded DarkRift {version} - {tier} (.NET {platform})."));
 
