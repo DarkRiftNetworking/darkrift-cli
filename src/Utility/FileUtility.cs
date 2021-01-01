@@ -33,8 +33,6 @@ namespace DarkRift.Cli.Utility
         /// <param name="targetDirectory">The directory to extract to.</param>
         public void ExtractZipTo(string sourceZip, string targetDirectory)
         {
-            Directory.CreateDirectory(targetDirectory);
-
             ZipFile.ExtractToDirectory(sourceZip, targetDirectory, true);
         }
 

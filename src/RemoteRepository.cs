@@ -89,7 +89,6 @@ namespace DarkRift.Cli
 
             Console.WriteLine($"Extracting package...");
 
-            // TODO add a try finally here to ensure we don't leave a staging file nor partial install directory on failure
             try
             {
                 fileUtility.ExtractZipTo(stagingPath, downloadDirectory);
