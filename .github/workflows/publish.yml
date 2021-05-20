@@ -24,3 +24,17 @@ jobs:
       with:
         name: darkrift-cli
         path: ./src/bin/Release/netcoreapp3.1/publish/
+    # - name: Login to DockerHub
+    #   uses: docker/login-action@v1
+    #   with:
+    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Docker Build and Push
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: false
+        tags: user/app:latest
+    - name: Docker Image Digest
+      run: echo ${{ steps.docker_build.outputs.digest }}
