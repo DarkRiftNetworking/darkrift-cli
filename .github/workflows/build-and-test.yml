@@ -22,3 +22,10 @@ jobs:
       with:
         name: darkrift-cli
         path: ./src/bin/Release/netcoreapp3.1/publish/
+    - name: Docker Build
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: false
+        tags: user/app:latest
