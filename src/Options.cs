@@ -72,4 +72,17 @@ namespace DarkRift.Cli
         [Option('l', "local", Default = false, HelpText = "Opens a local copy of the documentation.")]
         public bool Local { get; set; }
     }
+
+    [Verb("add", HelpText = "Adds a plugin from NuGet.")]
+    public class AddOptions
+    {
+        [Value(0, Required = true, HelpText = "The package to install")]
+        public string Package { get; set; }
+
+        [Option("version", HelpText = "The version of the package to install")]
+        public string Version { get; set; }
+
+        [Option("prerelease", Default = false, HelpText = "Specifies prerelease versions can be installed")]
+        public bool Prerelease { get; set; }
+    }
 }

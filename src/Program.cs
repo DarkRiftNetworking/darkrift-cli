@@ -8,6 +8,7 @@ using Crayon;
 using System.Collections.Generic;
 using DarkRift.Cli.Templating;
 using DarkRift.Cli.Utility;
+using DarkRift.Cli.NuGet;
 
 [assembly: InternalsVisibleTo("darkrift-cli-test")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
@@ -24,7 +25,12 @@ namespace DarkRift.Cli
         /// <summary>
         /// The DarkRift settings directory path.
         /// </summary>
-        private static readonly string USER_DR_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".darkrift");
+        private static readonly string USER_DR_DIRECTORY = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".darkrift");
+
+        /// <summary>
+        /// The DarkRift project directory path.
+        /// </summary>
+        private static readonly string PROJECT_DR_DIRECTORY = Path.Combine(Directory.GetCurrentDirectory(), ".darkrift", ".cli");
 
         /// <summary>
         /// The URL of the DarkRift website.
@@ -47,21 +53,34 @@ namespace DarkRift.Cli
         private readonly Templater templater;
 
         /// <summary>
+        /// Helper for NuGet operations.
+        /// </summary>
+        private readonly NuGetHelper nuGetHelper;
+
+        /// <summary>
+        /// Helper for editing the server configuration file.
+        /// </summary>
+        private readonly ServerConfigurationHelper serverConfigurationHelper;
+
+        /// <summary>
         /// The application's context.
         /// </summary>
         private readonly Context context;
 
-        public Program(InstallationManager installationManager, DocumentationManager documentationManager, Templater templater, Context context)
+        public Program(InstallationManager installationManager, DocumentationManager documentationManager, Templater templater, NuGetHelper nuGetHelper,
+            ServerConfigurationHelper serverConfigurationHelper, Context context)
         {
+            this.installationManager = installationManager;
             this.documentationManager = documentationManager;
             this.templater = templater;
+            this.nuGetHelper = nuGetHelper;
+            this.serverConfigurationHelper = serverConfigurationHelper;
             this.context = context;
-            this.installationManager = installationManager;
         }
 
         public static int Main(string[] args)
         {
-            Context context = Context.Load(Path.Combine(USER_DR_DIR, "profile.xml"), "Project.xml");
+            Context context = Context.Load(Path.Combine(USER_DR_DIRECTORY, "profile.xml"), "Project.xml");
 
             using WebClient webClient = new WebClient
             {
@@ -69,20 +88,27 @@ namespace DarkRift.Cli
             };
             RemoteRepository remoteRepository = new RemoteRepository(new InvoiceManager(context), context, new WebClientUtility(webClient), new FileUtility());
 
-            InstallationManager installationManager = new InstallationManager(remoteRepository, new FileUtility(), Path.Combine(USER_DR_DIR, "installed"), context);
-            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, new FileUtility(), Path.Combine(USER_DR_DIR, "documetation"));
+            InstallationManager installationManager = new InstallationManager(remoteRepository, new FileUtility(), Path.Combine(USER_DR_DIRECTORY, "installed"), context);
+            DocumentationManager documentationManager = new DocumentationManager(remoteRepository, new FileUtility(), Path.Combine(USER_DR_DIRECTORY, "documetation"));
 
             Templater templater = new Templater(TEMPLATES_PATH);
 
-            Program program = new Program(installationManager, documentationManager, templater, context);
+            NuGetHelper nuGetHelper = new NuGetHelper(Path.Combine(USER_DR_DIRECTORY, "packages"), Path.Combine(PROJECT_DR_DIRECTORY, "packages"), context);
+            ServerConfigurationHelper serverConfigurationHelper = new ServerConfigurationHelper(
+                Path.Combine(Directory.GetCurrentDirectory(), "Server.config"),
+                Path.Combine(PROJECT_DR_DIRECTORY, "Server.config.backup")
+            );
 
-            return new Parser(SetupParser).ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions>(args)
+            Program program = new Program(installationManager, documentationManager, templater, nuGetHelper, serverConfigurationHelper, context);
+
+            return new Parser(SetupParser).ParseArguments<NewOptions, RunOptions, GetOptions, PullOptions, DocsOptions, AddOptions>(args)
                 .MapResult(
                     (NewOptions opts) => program.New(opts),
                     (RunOptions opts) => program.Run(opts),
                     (GetOptions opts) => program.Get(opts),
                     (PullOptions opts) => program.Pull(opts),
                     (DocsOptions opts) => program.Docs(opts),
+                    (AddOptions opts) => program.Add(opts),
                     _ => 1);
         }
 
@@ -154,7 +180,7 @@ namespace DarkRift.Cli
                 return 1;
             }
 
-            string stagingDirectory = Path.Combine(".", ".darkrift", "temp");
+            string stagingDirectory = Path.Combine(PROJECT_DR_DIRECTORY, "temp");
             string stagingPath = Path.Combine(stagingDirectory, "Download.zip");
             Directory.CreateDirectory(stagingDirectory);
 
@@ -283,6 +309,15 @@ namespace DarkRift.Cli
             {
                 BrowserUtil.OpenTo($"https://darkriftnetworking.com/DarkRift2/Docs/{opts.Version}");
             }
+
+            return 0;
+        }
+
+        private int Add(AddOptions opts)
+        {
+            nuGetHelper.AddPackage(opts.Package, opts.Version, opts.Prerelease);
+
+            serverConfigurationHelper.AddPluginSearchPathIfNotPresent(Path.GetRelativePath(Directory.GetCurrentDirectory(), Path.Combine(PROJECT_DR_DIRECTORY, "packages")));
 
             return 0;
         }
