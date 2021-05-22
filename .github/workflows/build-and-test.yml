@@ -28,4 +28,4 @@ jobs:
       with:
         context: .
         push: false
-        tags: user/app:latest
+        tags: darkriftnetworking/darkrift-cli:latest-dev
