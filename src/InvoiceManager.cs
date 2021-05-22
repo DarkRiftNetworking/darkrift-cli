@@ -33,21 +33,29 @@ namespace DarkRift.Cli
         /// <returns>The user's invoice number, or null if they do not have one.</returns>
         public string GetInvoiceNumber()
         {
-            if (string.IsNullOrWhiteSpace(context.Profile.InvoiceNumber))
+            if (!string.IsNullOrWhiteSpace(context.Profile.InvoiceNumber))
+                return context.Profile.InvoiceNumber;
+
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DR_INVOICE_NO")))
             {
-                Console.WriteLine("To download a Pro release you must provide an invoice number to verify your purchase. This will usually be found in your receipt from the Unity Asset Store.");
-                Console.Write("Please enter it: ");
-                string invoiceNumber = Console.ReadLine();
-
-                if (string.IsNullOrWhiteSpace(invoiceNumber))
-                {
-                    Console.Error.WriteLine(Output.Red("No invoice number passed, no changes made."));
-                    return null;
-                }
-
-                context.Profile.InvoiceNumber = invoiceNumber;
+                context.Profile.InvoiceNumber = Environment.GetEnvironmentVariable("DR_INVOICE_NO");
                 context.Save();
+
+                return context.Profile.InvoiceNumber;
             }
+
+            Console.WriteLine("To download a Pro release you must provide an invoice number to verify your purchase. This will usually be found in your receipt from the Unity Asset Store.");
+            Console.Write("Please enter it: ");
+            string invoiceNumber = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(invoiceNumber))
+            {
+                Console.Error.WriteLine(Output.Red("No invoice number passed, no changes made."));
+                return null;
+            }
+
+            context.Profile.InvoiceNumber = invoiceNumber;
+            context.Save();
 
             return context.Profile.InvoiceNumber;
         }
