@@ -2,7 +2,9 @@ FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
 
 COPY ./src/bin/Release/netcoreapp3.1/publish/ /darkrift-cli
 
-RUN chmod +x /darkrift-cli/darkrift
+RUN chmod +x /darkrift-cli/darkrift \
+  && apk update \
+  && apk add bash
 
 VOLUME [ "/project" ]
 WORKDIR /project
