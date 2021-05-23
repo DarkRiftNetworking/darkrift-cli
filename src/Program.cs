@@ -61,6 +61,8 @@ namespace DarkRift.Cli
 
         public static int Main(string[] args)
         {
+            Directory.CreateDirectory(USER_DR_DIR);
+
             Context context = Context.Load(Path.Combine(USER_DR_DIR, "profile.xml"), "Project.xml");
 
             using WebClient webClient = new WebClient

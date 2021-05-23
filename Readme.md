@@ -82,10 +82,12 @@ You can use the CLI tool within docker, for example to host a dockerised DarkRif
 
 A simple example of this would be:
 ```bash
-docker run --name darkrift -d -p 4296/tcp -p 4296/udp -v project:/project -e DR_INVOICE_NO="if-using-pro" darkriftnetworking/darkrift-cli:latest
+docker run --name darkrift -d -p 4296/tcp -p 4296/udp -v $PWD/project:/project -e DR_INVOICE_NO="if-using-pro" darkriftnetworking/darkrift-cli:latest
 ```
 
 The `project` volume should contain a DarkRift project. Ports are provided as an example and will depend on the listener in use. By default, the command executed is `run`. The HTTP healthcheck plugin will need to be enabled and running on the default port of 10666.
+
+It is advised to set the DarkRift's data directory to a path outside of the project such as `/data`. It may be useful to assign this to a named volume if your plugins require persistence.
 
 # Development
 Pull requests are actively encouraged on all open source DarkRift projects! This section will provide some useful advice for extending or improving the DarkRift CLI tool.
