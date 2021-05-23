@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
+FROM mcr.microsoft.com/dotnet/runtime:3.1-alpine
 
 COPY ./src/bin/Release/netcoreapp3.1/publish/ /darkrift-cli
 
