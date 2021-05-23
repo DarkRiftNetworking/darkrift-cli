@@ -63,7 +63,7 @@ This version of DarkRift is then available for use in your projects when startin
 
 In most cases you do not need to do this yourself as `darkrift run` will automatically download the correct version.
 
-You can also list all the DarkRift version you have installed with:
+You can also list all the DarkRift versions you have installed with:
 ```bash
 darkrift pull --list
 ```
@@ -74,6 +74,18 @@ To access the DarkRift documentation you can simply use:
 darkrift docs 2.4.5
 ```
 Specifying without a version number will use your current project's version and specifying latest will get the documentation for the latest version of DarkRift. You can also add the `--local` flag to download the documentation to your local machine (note, this doesn't seem to render correctly in Firefox though).
+
+# Docker
+**Dockerisation is not production ready and should not be used on outside of a development environment**
+
+You can use the CLI tool within docker, for example to host a dockerised DarkRift server.
+
+A simple example of this would be:
+```bash
+docker run --name darkrift -d -p 4296/tcp -p 4296/udp -v project:/project -e DR_INVOICE_NO="if-using-pro" darkriftnetworking/darkrift-cli:latest
+```
+
+The `project` volume should contain a DarkRift project. Ports are provided as an example and will depend on the listener in use. By default, the command executed is `run`. The HTTP healthcheck plugin will need to be enabled and running on the default port of 10666.
 
 # Development
 Pull requests are actively encouraged on all open source DarkRift projects! This section will provide some useful advice for extending or improving the DarkRift CLI tool.
