@@ -1,4 +1,6 @@
 # DarkRift CLI Tool
+![GitHub all releases](https://img.shields.io/github/downloads/DarkRiftNetworking/darkrift-cli/total) ![Docker Pulls](https://img.shields.io/docker/pulls/darkriftnetworking/darkrift-cli)
+
 This tool is designed to make DarkRift projects more structured and uniform across all users as well as providing a single interface to simplify common tasks.
 
 To start with, the tool handles four common tasks:
@@ -78,7 +80,7 @@ Specifying without a version number will use your current project's version and 
 # Docker
 **Dockerisation is not production ready and should not be used on outside of a development environment**
 
-You can use the CLI tool within docker, for example to host a dockerised DarkRift server.
+You can use the CLI tool within docker, for example to host a dockerised DarkRift server. Images are hosted on [Docker Hub](https://hub.docker.com/repository/docker/darkriftnetworking/darkrift-cli).
 
 A simple example of this would be:
 ```bash
