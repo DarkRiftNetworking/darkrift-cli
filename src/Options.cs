@@ -23,8 +23,8 @@ namespace DarkRift.Cli
         [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
         public bool Pro { get; set; }
 
-        [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Specify the .NET platform of the server to use.")]
-        public ServerPlatform Platform { get; set; }
+        [Option('s', "platform", Default = "net40", HelpText = "Specify the .NET platform of the server to use.")]
+        public string Platform { get; set; }
     }
 
     [Verb("run", HelpText = "Run a DarkRift project.")]
@@ -50,8 +50,8 @@ namespace DarkRift.Cli
         [Option('p', "pro", Default = false, HelpText = "Use the pro version.")]
         public bool Pro { get; set; }
 
-        [Option('s', "platform", Default = ServerPlatform.Framework, HelpText = "Use the .NET platform of the server to use.")]
-        public ServerPlatform Platform { get; set; }
+        [Option('s', "platform", Default = "net40", HelpText = "Use the .NET platform of the server to use.")]
+        public string Platform { get; set; }
 
         [Option('d', "docs", Default = false, HelpText = "Download the documentation for this version instead.")]
         public bool Docs { get; set; }

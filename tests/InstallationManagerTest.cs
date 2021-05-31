@@ -23,12 +23,12 @@ namespace DarkRift.Cli
 
             // WHEN I get the installation
             InstallationManager classUnderTest = new InstallationManager(null, mockIFileUtility.Object, "a-dir", null);
-            DarkRiftInstallation result = classUnderTest.GetInstallation("a-version", ServerTier.Pro, ServerPlatform.Core);
+            DarkRiftInstallation result = classUnderTest.GetInstallation("a-version", ServerTier.Pro, "Core");
 
             // THEN the result is a valid DarkRiftInstallation object
             Assert.AreEqual("a-version", result.Version);
             Assert.AreEqual(ServerTier.Pro, result.Tier);
-            Assert.AreEqual(ServerPlatform.Core, result.Platform);
+            Assert.AreEqual("Core", result.Platform);
             Assert.AreEqual(Path.Combine("a-dir", "pro", "core", "a-version"), result.InstallationPath);
         }
 
@@ -40,7 +40,7 @@ namespace DarkRift.Cli
 
             // WHEN I get the installation
             InstallationManager classUnderTest = new InstallationManager(null, mockIFileUtility.Object, "a-dir", null);
-            DarkRiftInstallation result = classUnderTest.GetInstallation("a-version", ServerTier.Pro, ServerPlatform.Core);
+            DarkRiftInstallation result = classUnderTest.GetInstallation("a-version", ServerTier.Pro, "Core");
 
             // THEN the result is null
             Assert.IsNull(result);
@@ -50,24 +50,25 @@ namespace DarkRift.Cli
         public void TestGetVersions()
         {
             // GIVEN at least version is available
-            mockIFileUtility.Setup(f => f.DirectoryExists(Path.Combine("a-dir", "pro", "core"))).Returns(true);
+            mockIFileUtility.Setup(f => f.DirectoryExists(Path.Combine("a-dir", "pro"))).Returns(true);
+            mockIFileUtility.Setup(f => f.GetDirectories(Path.Combine("a-dir", "pro"))).Returns(new string[] { "core" });
             mockIFileUtility.Setup(f => f.GetDirectories(Path.Combine("a-dir", "pro", "core"))).Returns(new string[] { "dir1", "dir2" });
 
             // WHEN I get the installed versions
             InstallationManager classUnderTest = new InstallationManager(null, mockIFileUtility.Object, "a-dir", null);
-            List<DarkRiftInstallation> result = classUnderTest.GetVersions(ServerTier.Pro, ServerPlatform.Core);
+            List<DarkRiftInstallation> result = classUnderTest.GetVersions(ServerTier.Pro);
 
             // THEN the result is the correct DarkRiftInstallation objects
             Assert.AreEqual(2, result.Count);
 
             Assert.AreEqual("dir1", result[0].Version);
             Assert.AreEqual(ServerTier.Pro, result[0].Tier);
-            Assert.AreEqual(ServerPlatform.Core, result[0].Platform);
+            Assert.AreEqual("Core", result[0].Platform);
             Assert.AreEqual(Path.Combine("a-dir", "pro", "core", "dir1"), result[0].InstallationPath);
 
             Assert.AreEqual("dir2", result[1].Version);
             Assert.AreEqual(ServerTier.Pro, result[1].Tier);
-            Assert.AreEqual(ServerPlatform.Core, result[1].Platform);
+            Assert.AreEqual("Core", result[1].Platform);
             Assert.AreEqual(Path.Combine("a-dir", "pro", "core", "dir2"), result[1].InstallationPath);
         }
 
@@ -75,11 +76,11 @@ namespace DarkRift.Cli
         public void TestGetVersionsWhenNonePresent()
         {
             // GIVEN the search directory does not exist
-            mockIFileUtility.Setup(f => f.DirectoryExists(Path.Combine("a-dir", "pro", "core"))).Returns(false);
+            mockIFileUtility.Setup(f => f.DirectoryExists(Path.Combine("a-dir", "pro"))).Returns(false);
 
             // WHEN I get the installed versions
             InstallationManager classUnderTest = new InstallationManager(null, mockIFileUtility.Object, "a-dir", null);
-            List<DarkRiftInstallation> result = classUnderTest.GetVersions(ServerTier.Pro, ServerPlatform.Core);
+            List<DarkRiftInstallation> result = classUnderTest.GetVersions(ServerTier.Pro);
 
             // THEN the result is an empty array
             Assert.AreEqual(0, result.Count);
@@ -92,20 +93,20 @@ namespace DarkRift.Cli
             mockIFileUtility.Setup(f => f.DirectoryExists(Path.Combine("a-dir", "pro", "core", "a-version"))).Returns(false);
 
             // AND the installation is available on the remote
-            mockIRemoteRepository.Setup(r => r.DownloadVersionTo("a-version", ServerTier.Pro, ServerPlatform.Core, Path.Combine("a-dir", "pro", "core", "a-version")))
+            mockIRemoteRepository.Setup(r => r.DownloadVersionTo("a-version", ServerTier.Pro, "Core", Path.Combine("a-dir", "pro", "core", "a-version")))
                                  .Returns(true);
 
             // WHEN I install the version
             InstallationManager classUnderTest = new InstallationManager(mockIRemoteRepository.Object, mockIFileUtility.Object, "a-dir", null);
-            DarkRiftInstallation result = classUnderTest.Install("a-version", ServerTier.Pro, ServerPlatform.Core, false);
+            DarkRiftInstallation result = classUnderTest.Install("a-version", ServerTier.Pro, "Core", false);
 
             // THEN the download was run
-            mockIRemoteRepository.Verify(r => r.DownloadVersionTo("a-version", ServerTier.Pro, ServerPlatform.Core, Path.Combine("a-dir", "pro", "core", "a-version")));
+            mockIRemoteRepository.Verify(r => r.DownloadVersionTo("a-version", ServerTier.Pro, "Core", Path.Combine("a-dir", "pro", "core", "a-version")));
 
             // AND the installation returned is correct
             Assert.AreEqual("a-version", result.Version);
             Assert.AreEqual(ServerTier.Pro, result.Tier);
-            Assert.AreEqual(ServerPlatform.Core, result.Platform);
+            Assert.AreEqual("Core", result.Platform);
             Assert.AreEqual(Path.Combine("a-dir", "pro", "core", "a-version"), result.InstallationPath);
         }
 
@@ -116,20 +117,20 @@ namespace DarkRift.Cli
             mockIFileUtility.Setup(f => f.DirectoryExists(Path.Combine("a-dir", "pro", "core", "a-version"))).Returns(false);
 
             // AND the installation is available on the remote
-            mockIRemoteRepository.Setup(r => r.DownloadVersionTo("a-version", ServerTier.Pro, ServerPlatform.Core, Path.Combine("a-dir", "pro", "core", "a-version")))
+            mockIRemoteRepository.Setup(r => r.DownloadVersionTo("a-version", ServerTier.Pro, "Core", Path.Combine("a-dir", "pro", "core", "a-version")))
                                  .Returns(true);
 
             // WHEN I force install the version
             InstallationManager classUnderTest = new InstallationManager(mockIRemoteRepository.Object, mockIFileUtility.Object, "a-dir", null);
-            DarkRiftInstallation result = classUnderTest.Install("a-version", ServerTier.Pro, ServerPlatform.Core, true);
+            DarkRiftInstallation result = classUnderTest.Install("a-version", ServerTier.Pro, "Core", true);
 
             // THEN the download was run
-            mockIRemoteRepository.Verify(r => r.DownloadVersionTo("a-version", ServerTier.Pro, ServerPlatform.Core, Path.Combine("a-dir", "pro", "core", "a-version")));
+            mockIRemoteRepository.Verify(r => r.DownloadVersionTo("a-version", ServerTier.Pro, "Core", Path.Combine("a-dir", "pro", "core", "a-version")));
 
             // AND the installation returned is correct
             Assert.AreEqual("a-version", result.Version);
             Assert.AreEqual(ServerTier.Pro, result.Tier);
-            Assert.AreEqual(ServerPlatform.Core, result.Platform);
+            Assert.AreEqual("Core", result.Platform);
             Assert.AreEqual(Path.Combine("a-dir", "pro", "core", "a-version"), result.InstallationPath);
         }
 
@@ -140,12 +141,12 @@ namespace DarkRift.Cli
             mockIFileUtility.Setup(f => f.DirectoryExists(Path.Combine("a-dir", "pro", "core", "a-version"))).Returns(false);
 
             // AND the installation is not available on the remote
-            mockIRemoteRepository.Setup(r => r.DownloadVersionTo("a-version", ServerTier.Pro, ServerPlatform.Core, Path.Combine("a-dir", "pro", "core", "a-version")))
+            mockIRemoteRepository.Setup(r => r.DownloadVersionTo("a-version", ServerTier.Pro, "Core", Path.Combine("a-dir", "pro", "core", "a-version")))
                                  .Returns(false);
 
             // WHEN I install the version
             InstallationManager classUnderTest = new InstallationManager(mockIRemoteRepository.Object, mockIFileUtility.Object, "a-dir", null);
-            DarkRiftInstallation result = classUnderTest.Install("a-version", ServerTier.Pro, ServerPlatform.Core, false);
+            DarkRiftInstallation result = classUnderTest.Install("a-version", ServerTier.Pro, "Core", false);
 
             // THEN null is returned
             Assert.IsNull(result);

@@ -11,7 +11,7 @@ namespace DarkRift.Cli
     internal interface IRemoteRepository
     {
         bool DownloadDocumentationTo(string version, string downloadDirectory);
-        bool DownloadVersionTo(string version, ServerTier tier, ServerPlatform platform, string downloadDirectory);
+        bool DownloadVersionTo(string version, ServerTier tier, string platform, string downloadDirectory);
         string GetLatestDarkRiftVersion();
     }
 
@@ -60,7 +60,7 @@ namespace DarkRift.Cli
         /// <param name="platform">The platform</param>
         /// <param name="downloadDirectory">The directory to download the release to</param>
         /// <returns>True if installed successfully otherwise false</returns>
-        public bool DownloadVersionTo(string version, ServerTier tier, ServerPlatform platform, string downloadDirectory)
+        public bool DownloadVersionTo(string version, ServerTier tier, string platform, string downloadDirectory)
         {
             string stagingPath = fileUtility.GetTempFileName();
 
@@ -96,7 +96,10 @@ namespace DarkRift.Cli
             catch (Exception)
             {
                 // Make sure we don't leave a partial install
-                fileUtility.Delete(downloadDirectory);
+                if (fileUtility.DirectoryExists(downloadDirectory))
+                    fileUtility.Delete(downloadDirectory);
+
+                throw;
             }
             finally
             {

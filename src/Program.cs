@@ -189,7 +189,7 @@ namespace DarkRift.Cli
 
             string version;
             ServerTier tier;
-            ServerPlatform platform;
+            string platform;
             if (opts.Version == null)
             {
                 // If version info was omitted, set parameters to current project settings
@@ -293,10 +293,10 @@ namespace DarkRift.Cli
         public void PrintInstalledVersions()
         {
             // Since the free version only supports .Net Framework I'm not adding support here
-            List<DarkRiftInstallation> freeInstallations = installationManager.GetVersions(ServerTier.Free, ServerPlatform.Framework);
+            List<DarkRiftInstallation> freeInstallations = installationManager.GetVersions(ServerTier.Free);
 
-            List<DarkRiftInstallation> proFrameworkInstallations = installationManager.GetVersions(ServerTier.Pro, ServerPlatform.Framework);
-            List<DarkRiftInstallation> proCoreInstallations = installationManager.GetVersions(ServerTier.Pro, ServerPlatform.Core);
+            List<DarkRiftInstallation> proFrameworkInstallations = installationManager.GetVersions(ServerTier.Pro);
+            List<DarkRiftInstallation> proCoreInstallations = installationManager.GetVersions(ServerTier.Pro);
 
             if (freeInstallations.Count == 0 && proFrameworkInstallations.Count == 0 && proCoreInstallations.Count == 0)
             {

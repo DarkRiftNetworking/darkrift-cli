@@ -59,7 +59,7 @@ namespace DarkRift.Cli
         /// <param name="pro">Whether the pro version should be used.</param>
         /// <param name="platform">Whether the .NET Standard build should be used.</param>
         /// <returns>The path to the installation, or null, if it is not installed.</returns>
-        public DarkRiftInstallation GetInstallation(string version, ServerTier tier, ServerPlatform platform)
+        public DarkRiftInstallation GetInstallation(string version, ServerTier tier, string platform)
         {
             string path = GetInstallationPath(version, tier, platform);
             if (fileUtility.DirectoryExists(path))
@@ -72,16 +72,21 @@ namespace DarkRift.Cli
         /// Gets a list of versions installed with specific tier and platform
         /// </summary>
         /// <param name="tier">The tier</param>
-        /// <param name="platform">The platform</param>
         /// <returns>A list of installed versions</returns>
-        public List<DarkRiftInstallation> GetVersions(ServerTier tier, ServerPlatform platform)
+        public List<DarkRiftInstallation> GetVersions(ServerTier tier)
         {
-            string searchPath = Path.Combine(installationDirectory, tier.ToString().ToLower(), platform.ToString().ToLower());
+            string searchPath = Path.Combine(installationDirectory, tier.ToString().ToLower());
             if (!fileUtility.DirectoryExists(searchPath))
                 return new List<DarkRiftInstallation>();
             else
                 return fileUtility.GetDirectories(searchPath)
-                                  .Select(path => new DarkRiftInstallation(path, tier, platform, Path.Combine(searchPath, path)))
+                                  .SelectMany(path => fileUtility.GetDirectories(Path.Combine(searchPath, path))
+                                                                 .Select(subPath => new DarkRiftInstallation(
+                                                                     subPath,
+                                                                     tier,
+                                                                     path switch { "core" => "Core", "framework" => "Framework", _ => path },
+                                                                     Path.Combine(searchPath, path, subPath
+                                                                 ))))
                                   .ToList();
         }
 
@@ -92,7 +97,7 @@ namespace DarkRift.Cli
         /// <param name="pro">Whether the pro version should be used.</param>
         /// <param name="platform">Whether the .NET Standard build should be used.</param>
         /// <returns>The path to the installation, or null, if it is not available</returns>
-        public DarkRiftInstallation Install(string version, ServerTier tier, ServerPlatform platform, bool forceRedownload)
+        public DarkRiftInstallation Install(string version, ServerTier tier, string platform, bool forceRedownload)
         {
             string path = GetInstallationPath(version, tier, platform);
             if (forceRedownload || !fileUtility.DirectoryExists(path))
@@ -136,7 +141,7 @@ namespace DarkRift.Cli
         /// <param name="pro">Whether the pro version should be used.</param>
         /// <param name="platform">Whether the .NET Standard build should be used.</param>
         /// <returns>The path to the installation, or null, if it is not installed.</returns>
-        private string GetInstallationPath(string version, ServerTier tier, ServerPlatform platform)
+        private string GetInstallationPath(string version, ServerTier tier, string platform)
         {
             return Path.Combine(installationDirectory, tier.ToString().ToLower(), platform.ToString().ToLower(), version);
         }

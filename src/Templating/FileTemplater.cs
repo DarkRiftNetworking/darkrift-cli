@@ -64,7 +64,7 @@ namespace DarkRift.Cli.Templating
         /// <param name="darkriftVersion">The version of DarkRift being used.</param>
         /// <param name="tier">The tier of DarkRift being used.</param>
         /// <param name="platform">The platform the DarkRift being used was built for.</param>
-        public static void TemplateFileAndPath(string filePath, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
+        public static void TemplateFileAndPath(string filePath, string resourceName, string darkriftVersion, ServerTier tier, string platform)
         {
             resourceName = Normalize(resourceName);
 
@@ -93,7 +93,7 @@ namespace DarkRift.Cli.Templating
         /// <param name="darkriftVersion">The version of DarkRift being used.</param>
         /// <param name="tier">The tier of DarkRift being used.</param>
         /// <param name="platform">The platform the DarkRift being used was built for.</param>
-        private static string TemplateString(string text, string resourceName, string darkriftVersion, ServerTier tier, ServerPlatform platform)
+        private static string TemplateString(string text, string resourceName, string darkriftVersion, ServerTier tier, string platform)
         {
             // Keep files containing __k__
             if (text.Contains("__k__"))

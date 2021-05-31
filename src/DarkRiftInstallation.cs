@@ -23,14 +23,14 @@ namespace DarkRift.Cli
         /// <summary>
         /// The platform of the installation.
         /// </summary>
-        public ServerPlatform Platform { get; }
+        public string Platform { get; }
 
         /// <summary>
         /// The path to the installation.
         /// </summary>
         public string InstallationPath { get; }
 
-        public DarkRiftInstallation(string version, ServerTier tier, ServerPlatform platform, string installationPath)
+        public DarkRiftInstallation(string version, ServerTier tier, string platform, string installationPath)
         {
             Version = version;
             Tier = tier;
@@ -47,7 +47,7 @@ namespace DarkRift.Cli
         {
             // Calculate the executable file to run
             string fullPath;
-            if (Platform == ServerPlatform.Framework)
+            if (Platform == "net40")
             {
                 fullPath = Path.Combine(InstallationPath , "DarkRift.Server.Console.exe");
             }

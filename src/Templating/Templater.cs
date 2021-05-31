@@ -33,7 +33,7 @@ namespace DarkRift.Cli.Templating
         /// <param name="tier">The DarkRift tier to template with.</param>
         /// <param name="platform">The DarkRift platform to template with.</param>
         /// <param name="force">Whether to force expansion on a non-empty directory.</param>
-        public void Template(string type, string targetDirectory, string version, ServerTier tier, ServerPlatform platform, bool force)
+        public void Template(string type, string targetDirectory, string version, ServerTier tier, string platform, bool force)
         {
             string templatePath = Path.Combine(templatesPath, type + ".zip");
 

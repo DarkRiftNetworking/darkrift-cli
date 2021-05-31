@@ -15,7 +15,7 @@ namespace DarkRift.Cli
         /// <summary>
         /// If .NET core or .NET framework should be used.
         /// </summary>
-        public ServerPlatform Platform { get; set; }
+        public string Platform { get; set; }
 
         /// <summary>
         /// The tier of DarkRift to use.
@@ -35,7 +35,7 @@ namespace DarkRift.Cli
         /// <param name="version">The version of DarkRift to use.</param>
         /// <param name="tier">The tier of DarkRift to use.</param>
         /// <param name="platform">If .NET standard or .NET framework should be used.</param>
-        public Runtime(string version, ServerTier tier, ServerPlatform platform)
+        public Runtime(string version, ServerTier tier, string platform)
         {
             Version = version;
             Tier = tier;

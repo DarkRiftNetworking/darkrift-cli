@@ -31,7 +31,7 @@ namespace DarkRift.Cli
         {
             // WHEN I download a free server
             RemoteRepository classUnderTest = new RemoteRepository(null, null, mockIWebClientUtility.Object, mockIFileUtility.Object);
-            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Free, ServerPlatform.Core, "a-download-path");
+            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Free, "Core", "a-download-path");
 
             // THEN the result is success
             Assert.IsTrue(result);
@@ -54,7 +54,7 @@ namespace DarkRift.Cli
 
             // WHEN I download a pro server
             RemoteRepository classUnderTest = new RemoteRepository(mockIInvoiceManager.Object, null, mockIWebClientUtility.Object, mockIFileUtility.Object);
-            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Pro, ServerPlatform.Core, "a-download-path");
+            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Pro, "Core", "a-download-path");
 
             // THEN the result is success
             Assert.IsTrue(result);
@@ -77,7 +77,7 @@ namespace DarkRift.Cli
 
             // WHEN I download a pro server
             RemoteRepository classUnderTest = new RemoteRepository(mockIInvoiceManager.Object, null, mockIWebClientUtility.Object, mockIFileUtility.Object);
-            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Pro, ServerPlatform.Core, "a-download-path");
+            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Pro, "Core", "a-download-path");
 
             // THEN the result is not success
             Assert.IsFalse(result);
@@ -94,7 +94,7 @@ namespace DarkRift.Cli
 
             // WHEN I download a free server
             RemoteRepository classUnderTest = new RemoteRepository(null, null, mockIWebClientUtility.Object, mockIFileUtility.Object);
-            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Free, ServerPlatform.Core, "a-download-path");
+            bool result = classUnderTest.DownloadVersionTo("a-version", ServerTier.Free, "Core", "a-download-path");
 
             // THEN the result is not success
             Assert.IsFalse(result);
